@@ -1,0 +1,10 @@
+[project]
+name = "visisipy-shinylive"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "quarto-cli>=1.7.30",
+    "shinylive>=0.8.3",
+]

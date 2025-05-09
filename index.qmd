@@ -1,0 +1,29 @@
+---
+title: "MReye Demos"
+filters:
+  - shinylive
+---
+
+Welcome to our demo website!
+This website hosts a few interactive demos related to our research and / or software.
+Go check them out!
+
+::: {.grid}
+
+::: {.g-col-6}
+## PAROS
+
+Calculate the central magnification of the eye using an analytical method.
+
+[Go to demo](paros.qmd){.btn .btn-outline-primary .btn role="button"}
+:::
+
+::: {.g-col-6}
+## Visisipy
+
+Ray tracing simulations on the human eye, right in your browser!
+
+[Go to demo](visisipy.qmd){.btn .btn-outline-primary .btn role="button"}
+:::
+
+:::
