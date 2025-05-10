@@ -10,7 +10,7 @@ This integration demonstrates how PAROS can be used to calculate the central mag
 [Read the paper](https://doi.org/10.1167/iovs.65.1.43){.btn .btn-outline-primary .btn role="button"}
 
 ::: {.callout-warning}
-THIS EXAMPLE IS NOT INTENDED FOR MEDICAL USE AND DOES NOT ALLOW TO CHANGE CAMERA-RELATED PARAMETERS.
+This example is not intended for medical use and does not allow to change camera-related parameters.
 :::
 
 :::{.column-screen-inset}
@@ -26,18 +26,6 @@ def import_paros():
     """Hack needed because importing sympy (via paros) breaks printing"""
     from PAROS.fundscale import Eye, Camera, PhakicIOL, calculate_magnification
     return Eye, Camera, PhakicIOL, calculate_magnification
-
-
-ui.panel_title("Calculate the central magnification of an eye - camera system")
-ui.markdown(
-    "This integration demonstrates how PAROS can be used to calculate the central magnification of a fundus image. More information can be found at our [GitHub repository](https://github.com/MREYE-LUMC/PAROS)."
-)
-
-with ui.card():
-    ui.card_header("⚠ Warning")
-    ui.markdown(
-        "**THIS EXAMPLE IS NOT INTENDED FOR MEDICAL USE AND DOES NOT ALLOW TO CHANGE CAMERA-RELATED PARAMETERS.**"
-    )
 
 with ui.card():
     ui.card_header("Eye model parameters")
