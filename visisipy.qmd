@@ -24,32 +24,133 @@ import seaborn as sns
 
 visisipy.set_backend("optiland")
 
-model = visisipy.EyeModel()
+default_geometry = visisipy.NavarroGeometry()
 
-def build_model(model):
+with ui.sidebar():
+    ui.input_slider("n", "Ray angle", 1, 85, 1)
+
+    with ui.accordion(id="eye_model"):
+        with ui.accordion_panel("Biometry"):
+            ui.input_numeric(
+                "axial_length",
+                "Axial length [mm]",
+                round(default_geometry.axial_length, 3),
+                min=0,
+            )
+            ui.input_numeric(
+                "cornea_thickness",
+                "Cornea thickness [mm]",
+                default_geometry.cornea_thickness,
+                min=0,
+            )
+            ui.input_numeric(
+                "anterior_chamber_depth",
+                "Anterior chamber depth [mm]",
+                default_geometry.anterior_chamber_depth,
+                min=0,
+            )
+            ui.input_numeric(
+                "lens_thickness",
+                "Lens thickness [mm]",
+                default_geometry.lens_thickness,
+                min=0,
+            )
+
+        with ui.accordion_panel("Cornea front"):
+            ui.input_numeric(
+                "cornea_front_radius",
+                "Radius [mm]",
+                default_geometry.cornea_front.radius,
+                min=0,
+            )
+            ui.input_numeric(
+                "cornea_front_asphericity",
+                "Asphericity [-]",
+                default_geometry.cornea_front.asphericity,
+            )
+
+        with ui.accordion_panel("Cornea back"):
+            ui.input_numeric(
+                "cornea_back_radius",
+                "Radius [mm]",
+                default_geometry.cornea_back.radius,
+                min=0,
+            )
+            ui.input_numeric(
+                "cornea_back_asphericity",
+                "Asphericity [-]",
+                default_geometry.cornea_back.asphericity,
+            )
+
+        with ui.accordion_panel("Lens front"):
+            ui.input_numeric(
+                "lens_front_radius",
+                "Radius [mm]",
+                default_geometry.lens_front.radius,
+                min=0,
+            )
+            ui.input_numeric(
+                "lens_front_asphericity",
+                "Asphericity [-]",
+                default_geometry.lens_front.asphericity,
+            )
+
+        with ui.accordion_panel("Lens back"):
+            ui.input_numeric(
+                "lens_back_radius",
+                "Radius [mm]",
+                default_geometry.lens_back.radius,
+                max=0,
+            )
+            ui.input_numeric(
+                "lens_back_asphericity",
+                "Asphericity [-]",
+                default_geometry.lens_back.asphericity,
+            )
+
+
+def build_model():
+    geometry = visisipy.create_geometry(
+        axial_length=input.axial_length(),
+        cornea_front_radius=input.cornea_front_radius(),
+        cornea_front_asphericity=input.cornea_front_asphericity(),
+        cornea_back_radius=input.cornea_back_radius(),
+        cornea_back_asphericity=input.cornea_back_asphericity(),
+        cornea_thickness=input.cornea_thickness(),
+        anterior_chamber_depth=input.anterior_chamber_depth(),
+        lens_front_radius=input.lens_front_radius(),
+        lens_front_asphericity=input.lens_front_asphericity(),
+        lens_back_radius=input.lens_back_radius(),
+        lens_back_asphericity=input.lens_back_asphericity(),
+        lens_thickness=input.lens_thickness(),
+    )
+    model = visisipy.EyeModel(geometry)
     model.build()
 
-build_model(model)
-
-ui.input_slider("n", "Ray angle", 0, 85, 1)
+    return model
 
 
 @render.plot
 def raytrace():
+    model = build_model()
+
     y_coords = range(0, input.n(), 1)
     raytrace = visisipy.analysis.raytrace(coordinates=[(0, y) for y in y_coords])
-    raytrace.z -= (model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth)
-    
+    raytrace.z -= (
+        model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
+    )
+
     fig, ax = plt.subplots()
     visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
     ax.set_xlim((-7, 23))
     ax.set_ylim((-15, 15))
     ax.set_aspect("equal")
-    
+
     sns.lineplot(raytrace, x="z", y="y", hue="field", ax=ax, legend=False)
     ax.set_title(f"Raytrace 0 - {input.n()} degrees")
 
     return fig
+
 
 ## file: requirements.txt
 https://haasj.es/wheels/numba-0.61.2-py3-none-any.whl
