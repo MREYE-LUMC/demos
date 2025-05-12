@@ -18,6 +18,7 @@ Loading may take a while due to the installation of visisipy's dependencies.
 #| viewerHeight: 600
 ## file: app.py
 import visisipy
+import faicons
 import matplotlib.pyplot as plt
 from shiny import reactive, ui as cui
 from shiny.express import input, render, ui
@@ -130,8 +131,8 @@ with ui.sidebar(title="Model settings"):
 def update_current_fields_selectize(fields):
     ui.update_selectize(
         id="current_fields",
-        choices={str(i): f"{i} °" for i in fields},
-        selected=[str(i) for i in fields],
+        choices={str(i): f"{i} °" for i in sorted(fields)},
+        selected=[str(i) for i in sorted(fields)],
     )
 
 
@@ -189,33 +190,90 @@ def build_model():
     return model
 
 
-@render.plot
-def raytrace():
-    # Depend on fields
-    fields()
-
-    model = build_model()
-
-    y_coords = fields.get()
-    coordinates = [(0, y) for y in y_coords]
-    chiefs = visisipy.analysis.raytrace(coordinates=coordinates, wavelengths=[input.wavelength()])
-    marginals_top = visisipy.analysis.raytrace(coordinates=coordinates, pupil=(0, 1), wavelengths=[input.wavelength()])
-    marginals_bottom = visisipy.analysis.raytrace(
-        coordinates=coordinates, pupil=(0, -1), wavelengths=[input.wavelength()]
+@reactive.calc
+def eye_model():
+    visisipy.update_settings(
+        fields=[(0, y) for y in fields()],
+        wavelengths=[input.wavelength()]
     )
 
-    chiefs.z -= model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
+    geometry = visisipy.create_geometry(
+        axial_length=input.axial_length(),
+        cornea_front_radius=input.cornea_front_radius(),
+        cornea_front_asphericity=input.cornea_front_asphericity(),
+        cornea_back_radius=input.cornea_back_radius(),
+        cornea_back_asphericity=input.cornea_back_asphericity(),
+        cornea_thickness=input.cornea_thickness(),
+        anterior_chamber_depth=input.anterior_chamber_depth(),
+        lens_front_radius=input.lens_front_radius(),
+        lens_front_asphericity=input.lens_front_asphericity(),
+        lens_back_radius=input.lens_back_radius(),
+        lens_back_asphericity=input.lens_back_asphericity(),
+        lens_thickness=input.lens_thickness(),
+        pupil_radius=1,
+    )
+    model = visisipy.EyeModel(geometry)
+    model.build()
 
-    fig, ax = plt.subplots()
-    visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
-    ax.set_xlim((-7, 23))
-    ax.set_ylim((-15, 15))
-    ax.set_aspect("equal")
+    return model
 
-    sns.lineplot(chiefs, x="z", y="y", hue="field", ax=ax, legend=False)
-    ax.set_title(f"Raytrace result")
 
-    return fig
+@reactive.calc
+def raytrace():
+    model = eye_model()
+    
+    result = visisipy.analysis.raytrace(pupil=(0, 0))
+    result.z -= model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
+
+    return result
+
+
+@reactive.calc
+def refraction():
+    model = eye_model()
+
+    return [visisipy.analysis.refraction(field_coordinate=(0, y)) for y in range(0, 90, 5)]
+
+
+with ui.layout_columns(col_widths=(12,)):
+    with ui.layout_columns(col_widths=(8, 4)):
+        with ui.card():
+            ui.card_header("Raytrace result")
+            
+            @render.plot
+            def plot_raytrace():
+                model = eye_model()
+            
+                fig, ax = plt.subplots()
+                visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
+                ax.set_xlim((-7, 23))
+                ax.set_ylim((-15, 15))
+                ax.set_aspect("equal")
+            
+                sns.lineplot(raytrace(), x="z", y="y", hue="field", ax=ax, legend=False)
+            
+                return fig
+        
+        
+        with ui.value_box(showcase=faicons.icon_svg("glasses", width="50px"), theme="blue"):
+            "Central refraction"
+        
+            @render.ui
+            def central_refraction():
+                return f"{refraction()[0].M:.2f} D"
+
+    with ui.card():
+        ui.card_header("Refraction as function of eccentricity")
+        
+        @render.plot
+        def plot_refraction():
+            fig, ax = plt.subplots()
+        
+            ax.plot(range(0, 90, 5), [r.M for r in refraction()])
+            ax.set_xlabel("Eccentricity [°]")
+            ax.set_ylabel("Refraction [D]")
+        
+            return fig
 
 
 ## file: requirements.txt
