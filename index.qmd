@@ -10,20 +10,20 @@ Go check them out!
 
 ::: {.grid}
 
-::: {.g-col-6}
+::: {.g-col-6 .card .card-body}
 ## PAROS
 
 Calculate the central magnification of the eye using an analytical method.
 
-[Go to demo](paros.qmd){.btn .btn-outline-primary .btn role="button"}
+[Go to demo](paros/index.qmd){.btn .btn-outline-primary .btn role="button"}
 :::
 
-::: {.g-col-6}
+::: {.g-col-6 .card .card-body}
 ## Visisipy
 
 Ray tracing simulations on the human eye, right in your browser!
 
-[Go to demo](visisipy.qmd){.btn .btn-outline-primary .btn role="button"}
+[Go to demo](visisipy/index.qmd){.btn .btn-outline-primary .btn role="button"}
 :::
 
 :::
