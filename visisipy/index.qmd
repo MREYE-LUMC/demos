@@ -30,7 +30,7 @@ default_geometry = visisipy.NavarroGeometry()
 _initial_fields = {0, 30, 60}
 fields = reactive.value(_initial_fields)
 
-with ui.sidebar():
+with ui.sidebar(title="Model settings"):
     with ui.accordion(id="eye_model"):
         with ui.accordion_panel("Fields"):
             with ui.card():
@@ -46,6 +46,7 @@ with ui.sidebar():
             )
 
             ui.input_action_button("clear_fields", "Clear all fields")
+            ui.input_numeric("wavelength", "Wavelength [μm]", 0.543, min=0.38, max=0.75)
 
         with ui.accordion_panel("Biometry"):
             ui.input_numeric(
@@ -197,10 +198,10 @@ def raytrace():
 
     y_coords = fields.get()
     coordinates = [(0, y) for y in y_coords]
-    chiefs = visisipy.analysis.raytrace(coordinates=coordinates)
-    marginals_top = visisipy.analysis.raytrace(coordinates=coordinates, pupil=(0, 1))
+    chiefs = visisipy.analysis.raytrace(coordinates=coordinates, wavelengths=[input.wavelength()])
+    marginals_top = visisipy.analysis.raytrace(coordinates=coordinates, pupil=(0, 1), wavelengths=[input.wavelength()])
     marginals_bottom = visisipy.analysis.raytrace(
-        coordinates=coordinates, pupil=(0, -1)
+        coordinates=coordinates, pupil=(0, -1), wavelengths=[input.wavelength()]
     )
 
     chiefs.z -= model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
@@ -215,6 +216,7 @@ def raytrace():
     ax.set_title(f"Raytrace result")
 
     return fig
+
 
 ## file: requirements.txt
 https://haasj.es/wheels/numba-0.61.2-py3-none-any.whl
