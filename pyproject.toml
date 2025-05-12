@@ -1,7 +1,7 @@
 [project]
-name = "visisipy-shinylive"
+name = "mreye-demos"
 version = "0.1.0"
-description = "Add your description here"
+description = "Website with interactive demos for the MReye research group"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
