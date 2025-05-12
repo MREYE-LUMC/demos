@@ -3,17 +3,16 @@ project:
 
 website:
   title: "MReye demos"
+  favicon: _assets/icon.png
   navbar:
+    logo: _assets/icon.png
     left:
-      - href: index.qmd
-        text: Home
       - href: paros/index.qmd
         text: PAROS
       - href: visisipy/index.qmd
         text: Visisipy
       - href: https://mreye.nl
         text: About us
-
 
 format:
   html:
