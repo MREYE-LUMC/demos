@@ -19,6 +19,7 @@ Loading may take a while due to the installation of visisipy's dependencies.
 ## file: app.py
 import visisipy
 import matplotlib.pyplot as plt
+from shiny import reactive, ui as cui
 from shiny.express import input, render, ui
 import seaborn as sns
 
@@ -26,10 +27,26 @@ visisipy.set_backend("optiland")
 
 default_geometry = visisipy.NavarroGeometry()
 
-with ui.sidebar():
-    ui.input_slider("n", "Ray angle", 1, 85, 1)
+_initial_fields = {0, 30, 60}
+fields = reactive.value(_initial_fields)
 
+with ui.sidebar():
     with ui.accordion(id="eye_model"):
+        with ui.accordion_panel("Fields"):
+            with ui.card():
+                ui.input_numeric("field_angle", "Field angle [°]", 0, min=0, max=90)
+                ui.input_action_button("add_field", "Add field")
+
+            ui.input_selectize(
+                "current_fields",
+                "Current fields",
+                {str(i): f"{i} °" for i in _initial_fields},
+                selected=list(map(str, _initial_fields)),
+                multiple=True,
+            )
+
+            ui.input_action_button("clear_fields", "Clear all fields")
+
         with ui.accordion_panel("Biometry"):
             ui.input_numeric(
                 "axial_length",
@@ -109,6 +126,46 @@ with ui.sidebar():
             )
 
 
+def update_current_fields_selectize(fields):
+    ui.update_selectize(
+        id="current_fields",
+        choices={str(i): f"{i} °" for i in fields},
+        selected=[str(i) for i in fields],
+    )
+
+
+@reactive.effect
+@reactive.event(input.add_field, ignore_none=True)
+def add_field():
+    """Add a field to the system."""
+    new_field = input.field_angle()
+
+    if new_field is not None:
+        fields.set(fields() | {new_field})
+
+        # Update selectize
+        update_current_fields_selectize(fields())
+
+
+@reactive.effect
+@reactive.event(input.current_fields)
+def remove_field():
+    """Remove a field from the system by removing it from the current_fields selectize."""
+    current_fields = set(int(f) for f in input.current_fields())
+
+    if current_fields != fields():
+        fields.set(set(sorted(current_fields)))
+        update_current_fields_selectize(current_fields)
+
+
+@reactive.effect
+@reactive.event(input.clear_fields, ignore_none=True)
+def clear_fields():
+    """Clear all fields except for the central field."""
+    fields.set({0})
+    update_current_fields_selectize({0})
+
+
 def build_model():
     geometry = visisipy.create_geometry(
         axial_length=input.axial_length(),
@@ -123,6 +180,7 @@ def build_model():
         lens_back_radius=input.lens_back_radius(),
         lens_back_asphericity=input.lens_back_asphericity(),
         lens_thickness=input.lens_thickness(),
+        pupil_radius=1,
     )
     model = visisipy.EyeModel(geometry)
     model.build()
@@ -132,13 +190,20 @@ def build_model():
 
 @render.plot
 def raytrace():
+    # Depend on fields
+    fields()
+
     model = build_model()
 
-    y_coords = range(0, input.n(), 1)
-    raytrace = visisipy.analysis.raytrace(coordinates=[(0, y) for y in y_coords])
-    raytrace.z -= (
-        model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
+    y_coords = fields.get()
+    coordinates = [(0, y) for y in y_coords]
+    chiefs = visisipy.analysis.raytrace(coordinates=coordinates)
+    marginals_top = visisipy.analysis.raytrace(coordinates=coordinates, pupil=(0, 1))
+    marginals_bottom = visisipy.analysis.raytrace(
+        coordinates=coordinates, pupil=(0, -1)
     )
+
+    chiefs.z -= model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
 
     fig, ax = plt.subplots()
     visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
@@ -146,11 +211,10 @@ def raytrace():
     ax.set_ylim((-15, 15))
     ax.set_aspect("equal")
 
-    sns.lineplot(raytrace, x="z", y="y", hue="field", ax=ax, legend=False)
-    ax.set_title(f"Raytrace 0 - {input.n()} degrees")
+    sns.lineplot(chiefs, x="z", y="y", hue="field", ax=ax, legend=False)
+    ax.set_title(f"Raytrace result")
 
     return fig
-
 
 ## file: requirements.txt
 https://haasj.es/wheels/numba-0.61.2-py3-none-any.whl
