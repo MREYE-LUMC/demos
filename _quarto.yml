@@ -7,9 +7,9 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: paros.qmd
+      - href: paros/index.qmd
         text: PAROS
-      - href: visisipy.qmd
+      - href: visisipy/index.qmd
         text: Visisipy
       - href: https://mreye.nl
         text: About us
