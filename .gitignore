@@ -12,6 +12,4 @@ wheels/
 # Quarto
 .quarto/
 _site/
-
-
-/.quarto/
+site_libs/
