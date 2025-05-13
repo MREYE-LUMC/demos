@@ -32,13 +32,33 @@ Demos are built using [Shiny for Python](https://shiny.posit.co/py/) and embedde
     The preview will be updated automatically as you make changes.
 5. Push your changes. They will be automatically deployed to GitHub Pages.
 
+## MDR message
+
+Every demo must warn the user that these demos are not intended for medical use.
+To do this, add the following to the demo's frontmatter:
+
+```markdown
+---
+... # Other frontmatter
+
+format:
+  html:
+    include-after-body: ../_includes/mdr-modal.html # Note: this path is relative to the demo's folder
+---
+```
+
+
 ## Editable demos
 
 URLs to demos that can be edited on <shinylive.io> are automatically generated when rendering the website.
 To enable this feature for a demo, add the following to the demo's frontmatter:
 
-```yaml
+```markdown
+---
+... # Other frontmatter
+
 editable: true
+---
 ```
 
 This will create an additional html file named `edit.html` in the demo's folder.

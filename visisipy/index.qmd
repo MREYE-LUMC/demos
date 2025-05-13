@@ -4,6 +4,10 @@ filters:
   - shinylive
 
 editable: true
+
+format:
+  html:
+    include-after-body: ../_includes/mdr-modal.html
 ---
 
 This is a demonstration of [visisipy](https://visisipy.readthedocs.io), our Python library for visual optics simulations.
