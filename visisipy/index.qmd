@@ -6,7 +6,7 @@ filters:
 editable: true
 ---
 
-This is a demonstration of [visisipy](https://visisipy.readthedocs.io), our Python library for vision simulations.
+This is a demonstration of [visisipy](https://visisipy.readthedocs.io), our Python library for visual optics simulations.
 
 [Check the code](https://github.com/MREYE-LUMC/visisipy){.btn .btn-outline-primary .btn role="button"}
 <!-- Note: the edit.html file is generated automatically. -->
@@ -40,7 +40,7 @@ with ui.sidebar(title="Model settings"):
     with ui.accordion(id="eye_model"):
         with ui.accordion_panel("Fields"):
             with ui.card():
-                ui.input_numeric("field_angle", "Field angle [°]", 0, min=0, max=90)
+                ui.input_numeric("field_angle", "Field angle [°]", 0, min=0, max=90,  step=5)
                 ui.input_action_button("add_field", "Add field")
 
             ui.input_selectize(
@@ -52,7 +52,7 @@ with ui.sidebar(title="Model settings"):
             )
 
             ui.input_action_button("clear_fields", "Clear all fields")
-            ui.input_numeric("wavelength", "Wavelength [μm]", 0.543, min=0.38, max=0.75)
+            ui.input_numeric("wavelength", "Wavelength [μm]", 0.543, min=0.38, max=0.75,  step=0.1)
 
         with ui.accordion_panel("Biometry"):
             ui.input_numeric(
@@ -60,24 +60,28 @@ with ui.sidebar(title="Model settings"):
                 "Axial length [mm]",
                 round(default_geometry.axial_length, 3),
                 min=0,
+                step=1,
             )
             ui.input_numeric(
                 "cornea_thickness",
                 "Cornea thickness [mm]",
                 default_geometry.cornea_thickness,
                 min=0,
+                step=0.1,
             )
             ui.input_numeric(
                 "anterior_chamber_depth",
                 "Anterior chamber depth [mm]",
                 default_geometry.anterior_chamber_depth,
                 min=0,
+                step=0.1,
             )
             ui.input_numeric(
                 "lens_thickness",
                 "Lens thickness [mm]",
                 default_geometry.lens_thickness,
                 min=0,
+                step=0.5,
             )
 
         with ui.accordion_panel("Cornea front"):
@@ -86,11 +90,13 @@ with ui.sidebar(title="Model settings"):
                 "Radius [mm]",
                 default_geometry.cornea_front.radius,
                 min=0,
+                step=1,
             )
             ui.input_numeric(
                 "cornea_front_asphericity",
                 "Asphericity [-]",
                 default_geometry.cornea_front.asphericity,
+                step=0.1,
             )
 
         with ui.accordion_panel("Cornea back"):
@@ -99,11 +105,13 @@ with ui.sidebar(title="Model settings"):
                 "Radius [mm]",
                 default_geometry.cornea_back.radius,
                 min=0,
+                step=1,
             )
             ui.input_numeric(
                 "cornea_back_asphericity",
                 "Asphericity [-]",
                 default_geometry.cornea_back.asphericity,
+                step=0.1,
             )
 
         with ui.accordion_panel("Lens front"):
@@ -112,11 +120,13 @@ with ui.sidebar(title="Model settings"):
                 "Radius [mm]",
                 default_geometry.lens_front.radius,
                 min=0,
+                step=1,
             )
             ui.input_numeric(
                 "lens_front_asphericity",
                 "Asphericity [-]",
                 default_geometry.lens_front.asphericity,
+                step=0.1,
             )
 
         with ui.accordion_panel("Lens back"):
@@ -125,11 +135,13 @@ with ui.sidebar(title="Model settings"):
                 "Radius [mm]",
                 default_geometry.lens_back.radius,
                 max=0,
+                step=1,
             )
             ui.input_numeric(
                 "lens_back_asphericity",
                 "Asphericity [-]",
                 default_geometry.lens_back.asphericity,
+                step=0.1,
             )
 
 

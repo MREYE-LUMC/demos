@@ -13,7 +13,7 @@ Go check them out!
 ::: {.g-col-6 .card .card-body}
 ## PAROS
 
-Calculate the central magnification of the eye using an analytical method.
+Calculate the central magnification of fundus photographs using an analytical method.
 
 [Go to demo](paros/index.qmd){.btn .btn-outline-primary .btn role="button"}
 :::
