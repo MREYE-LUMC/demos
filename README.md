@@ -18,8 +18,11 @@ Demos are built using [Shiny for Python](https://shiny.posit.co/py/) and embedde
 >  ```powershell
 >  winget install astral-sh.uv
 >  ```
-> or on unix/github codespaces:
->  `pip install uv`
+> On Linux and MacOS, use
+> 
+> ```bash
+> curl -LsSf https://astral.sh/uv/install.sh | sh
+> ```
 
 1. Clone this repository or open it in a Codespace
 2. Install the dependencies:
