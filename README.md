@@ -32,5 +32,18 @@ Demos are built using [Shiny for Python](https://shiny.posit.co/py/) and embedde
     The preview will be updated automatically as you make changes.
 5. Push your changes. They will be automatically deployed to GitHub Pages.
 
+## Editable demos
 
+URLs to demos that can be edited on <shinylive.io> are automatically generated when rendering the website.
+To enable this feature for a demo, add the following to the demo's frontmatter:
 
+```yaml
+editable: true
+```
+
+This will create an additional html file named `edit.html` in the demo's folder.
+To link to the editable demo, a button can be added to the demo's main page:
+
+```markdown
+[Edit the demo](edit.html){.btn .btn-outline-primary .btn role="button" .external}
+```

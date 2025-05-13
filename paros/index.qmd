@@ -2,12 +2,16 @@
 title: Calculate the central magnification of an eye - camera system
 filters:
   - shinylive
+
+editable: true
 ---
 
 This integration demonstrates how PAROS can be used to calculate the central magnification of a fundus image. More information can be found at our [GitHub repository](https://github.com/MREYE-LUMC/PAROS).
 
 [Check the code](https://github.com/MREYE-LUMC/PAROS){.btn .btn-outline-primary .btn role="button"}
 [Read the paper](https://doi.org/10.1167/iovs.65.1.43){.btn .btn-outline-primary .btn role="button"}
+<!-- Note: the edit.html file is generated automatically. -->
+[Edit the demo](edit.html){.btn .btn-outline-primary .btn role="button" .external}
 
 ::: {.callout-warning}
 This example is not intended for medical use and does not allow to change camera-related parameters.

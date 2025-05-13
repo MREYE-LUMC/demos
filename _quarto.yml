@@ -1,5 +1,8 @@
 project:
   type: website
+  pre-render: python scripts/generate-edit-url.py
+  resources:
+    - "edit.html"
 
 website:
   title: "MReye demos"

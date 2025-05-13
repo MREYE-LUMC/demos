@@ -13,5 +13,6 @@ wheels/
 .quarto/
 _site/
 site_libs/
+edit.html
 
 /.quarto/

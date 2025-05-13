@@ -2,11 +2,16 @@
 title: "Ocular ray tracing simulations"
 filters:
   - shinylive
+
+editable: true
 ---
 
 This is a demonstration of [visisipy](https://visisipy.readthedocs.io), our Python library for vision simulations.
 
 [Check the code](https://github.com/MREYE-LUMC/visisipy){.btn .btn-outline-primary .btn role="button"}
+<!-- Note: the edit.html file is generated automatically. -->
+[Edit the demo](edit.html){.btn .btn-outline-primary .btn role="button" .external}
+
 
 ::: {.callout-note}
 Loading may take a while due to the installation of visisipy's dependencies.
