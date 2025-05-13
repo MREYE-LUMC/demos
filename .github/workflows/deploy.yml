@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - crnh/pages-publish
 
 jobs:
   build:
