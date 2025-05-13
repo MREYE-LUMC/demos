@@ -111,7 +111,7 @@ if __name__ == "__main__":
     for file in files:
         path = Path(file)
 
-        settings = frontmatter.load(path)
+        settings = frontmatter.load(str(path))
 
         print(f"{path} {settings.get('editable')}")
 
