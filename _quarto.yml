@@ -1,6 +1,6 @@
 project:
   type: website
-  pre-render: python scripts/generate-edit-url.py
+  pre-render: python _scripts/generate-edit-url.py
   resources:
     - "edit.html"
 

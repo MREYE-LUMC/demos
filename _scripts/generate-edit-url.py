@@ -15,7 +15,7 @@ from lzstring import LZString
 URL_PREFIX = "https://shinylive.io/py/editor/#code="
 FILES = [
     "paros/index.qmd",
-    "visisipy/index.md",
+    "visisipy/index.qmd",
 ]
 
 REDIRECT_PAGE_TEMPLATE = """
