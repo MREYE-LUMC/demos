@@ -78,21 +78,6 @@ def split_code_to_files(code: str) -> dict[str, str]:
     return files
 
 
-def get_edit_url(file: str) -> str:
-    """
-    Get the edit URL for the given file.
-    """
-    path = Path(file)
-    contents = path.read_text()
-    code = get_shiny_code(contents)
-    files = split_code_to_files(code)
-
-    compressed_files = LZString().compressToEncodedURIComponent(
-        json.dumps([{"name": k, "content": v} for k, v in files.items()])
-    )
-    return URL_PREFIX + compressed_files
-
-
 def write_redirect_file(path: Path, url: str) -> None:
     """
     Write a redirect file to the given path.
@@ -114,7 +99,7 @@ if __name__ == "__main__":
         settings = frontmatter.load(str(path))
 
         if settings.get("editable"):
-            contents = path.read_text()
+            contents = path.read_text(encoding="utf-8")
 
             # Extract the shiny code
             code = get_shiny_code(contents)
@@ -127,9 +112,11 @@ if __name__ == "__main__":
             code_files = split_code_to_files(code)
 
             compressed_files = LZString().compressToEncodedURIComponent(
-                json.dumps([{"name": k, "content": v} for k, v in code_files.items()])
+                json.dumps(
+                    [{"name": k, "content": v} for k, v in code_files.items()],
+                    ensure_ascii=False,
+                )
             )
             url = URL_PREFIX + compressed_files
 
             write_redirect_file(path.parent / "edit.html", url)
-
