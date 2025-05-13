@@ -39,7 +39,7 @@ To do this, add the following to the demo's frontmatter:
 
 ```markdown
 ---
-... # Other frontmatter
+# Other frontmatter
 
 format:
   html:
@@ -55,7 +55,7 @@ To enable this feature for a demo, add the following to the demo's frontmatter:
 
 ```markdown
 ---
-... # Other frontmatter
+# Other frontmatter
 
 editable: true
 ---
