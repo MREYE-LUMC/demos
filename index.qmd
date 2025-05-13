@@ -6,22 +6,34 @@ Welcome to our demo website!
 This website hosts a few interactive demos related to our research and / or software.
 Go check them out!
 
-::: {.grid}
+::::: {.grid}
 
-::: {.g-col-6 .card .card-body}
-## PAROS
+:::: {.g-col-12 .g-col-sm-6 .card}
+::: {.card-header .bg-white}
+### PAROS
+:::
 
+::: {.card-body .d-flex .flex-column}
 Calculate the central magnification of fundus photographs using an analytical method.
 
+::: {.mt-auto}
 [Go to demo](paros/index.qmd){.btn .btn-outline-primary .btn role="button"}
 :::
+:::
+::::
 
-::: {.g-col-6 .card .card-body}
-## Visisipy
+:::: {.g-col-12 .g-col-sm-6 .card}
+::: {.card-header .bg-white}
+### Visisipy
+:::
 
+::: {.card-body .d-flex .flex-column}
 Ray tracing simulations on the human eye, right in your browser!
 
-[Go to demo](visisipy/index.qmd){.btn .btn-outline-primary .btn role="button"}
+::: {.mt-auto}
+[Go to demo](visisipy/index.qmd){.btn .btn-outline-primary .btn .mt-auto role="button"}
 :::
+:::
+::::
 
-:::
+:::::
