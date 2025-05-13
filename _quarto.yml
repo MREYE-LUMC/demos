@@ -3,7 +3,10 @@ project:
 
 website:
   title: "MReye demos"
+  description: "Interactive demos of research projects by the MReye group"
   favicon: _assets/icon.png
+  site-url: https://demo.mreye.nl
+  repo-url: https://github.com/MREYE-LUMC/demos
   navbar:
     logo: _assets/icon.png
     left:

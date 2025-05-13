@@ -35,20 +35,24 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      pages: write # to deploy to Pages
-      id-token: write # to verify the deployment originates from an appropriate source
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: write # to write to the gh-pages branch
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: demo-website
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          artifact_name: demo-website
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Publish Quarto website
+        run: uv run quarto publish gh-pages --no-prompt --no-browser
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
