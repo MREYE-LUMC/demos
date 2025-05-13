@@ -20,7 +20,7 @@ Loading may take a while due to the installation of visisipy's dependencies.
 :::{.column-screen-inset}
 ```{shinylive-python}
 #| standalone: true
-#| viewerHeight: 600
+#| viewerHeight: 1100
 ## file: app.py
 import visisipy
 import faicons
