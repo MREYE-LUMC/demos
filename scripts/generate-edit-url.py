@@ -113,8 +113,6 @@ if __name__ == "__main__":
 
         settings = frontmatter.load(str(path))
 
-        print(f"{path} {settings.get('editable')}")
-
         if settings.get("editable"):
             contents = path.read_text()
 
