@@ -4,7 +4,7 @@ filters:
   - shinylive
 ---
 
-This is a demonstration of [visisipy](https://visisipy.readthedocs.io), our Python library for vision simulations.
+This is a demonstration of [visisipy](https://visisipy.readthedocs.io), our Python library for visual optics simulations.
 
 [Check the code](https://github.com/MREYE-LUMC/visisipy){.btn .btn-outline-primary .btn role="button"}
 

@@ -10,7 +10,7 @@ This integration demonstrates how PAROS can be used to calculate the central mag
 [Read the paper](https://doi.org/10.1167/iovs.65.1.43){.btn .btn-outline-primary .btn role="button"}
 
 ::: {.callout-warning}
-This example is not intended for medical use and does not allow to change camera-related parameters.
+This example is not intended for medical use and does not allow to customize camera-related parameters.
 :::
 
 :::{.column-screen-inset}
