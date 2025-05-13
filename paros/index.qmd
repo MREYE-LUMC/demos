@@ -20,7 +20,7 @@ This example is not intended for medical use and does not allow to customize cam
 :::{.column-screen-inset}
 ```{shinylive-python}
 #| standalone: true
-#| viewerHeight: 800
+#| viewerHeight: 900
 ## file: app.py
 from shiny.express import input, render, ui
 from dataclasses import dataclass
