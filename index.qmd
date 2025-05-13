@@ -1,7 +1,5 @@
 ---
 title: "MReye Demos"
-filters:
-  - shinylive
 ---
 
 Welcome to our demo website!

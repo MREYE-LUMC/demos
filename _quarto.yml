@@ -3,6 +3,7 @@ project:
   pre-render: python _scripts/generate-edit-url.py
   resources:
     - "edit.html"
+    - "_includes/mdr.js"
 
 website:
   title: "MReye demos"

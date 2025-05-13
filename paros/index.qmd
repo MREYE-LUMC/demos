@@ -4,6 +4,10 @@ filters:
   - shinylive
 
 editable: true
+
+format:
+  html:
+    include-after-body: ../_includes/mdr-modal.html
 ---
 
 This integration demonstrates how PAROS can be used to calculate the central magnification of a fundus image. More information can be found at our [GitHub repository](https://github.com/MREYE-LUMC/PAROS).
