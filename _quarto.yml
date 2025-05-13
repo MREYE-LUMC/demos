@@ -16,6 +16,10 @@ website:
         text: Visisipy
       - href: https://mreye.nl
         text: About us
+    right:
+      - icon: github
+        href: https://github.com/MREYE-LUMC/demos
+        aria-label: GitHub
 
 format:
   html:
