@@ -24,6 +24,9 @@ website:
         href: https://github.com/MREYE-LUMC/demos
         aria-label: GitHub
 
+  page-footer:
+    center: "© 2025 Jan-Willem Beenakker and the MReye research group. Built with [Quarto](https://quarto.org) and [Shiny for Python](https://https://shiny.posit.co/py/)."
+
 format:
   html:
     theme:
