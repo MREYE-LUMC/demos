@@ -248,7 +248,7 @@ def eye_model() -> visisipy.EyeModel:
 @reactive.calc
 def raytrace():
     model = eye_model()
-    
+
     result = visisipy.analysis.raytrace(pupil=(0, 0))
     result.z -= model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
 
@@ -268,7 +268,7 @@ with ui.layout_columns(col_widths=(12,)):
     with ui.layout_columns(col_widths=(8, 4)):
         with ui.card():
             ui.card_header("Raytrace result")
-            
+
             @render.plot
             def plot_raytrace():
                 model = eye_model()
@@ -277,43 +277,42 @@ with ui.layout_columns(col_widths=(12,)):
                 x_max = model.geometry.lens_thickness + model.geometry.vitreous_thickness + 3
                 y_max = model.geometry.retina.half_axes.radial + 3
                 y_min = -y_max
-            
+
                 fig, ax = plt.subplots()
                 visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
                 ax.set_xlim((x_min, x_max))
                 ax.set_ylim((y_min, y_max))
                 ax.set_aspect("equal")
-            
+
                 sns.lineplot(raytrace(), x="z", y="y", hue="field", ax=ax, legend=False)
-            
+
                 return fig
-        
+
         with ui.value_box(
             showcase=faicons.icon_svg("glasses", width="50px"), theme="blue"
         ):
             "Central refraction"
-        
+
             @render.ui
             def central_refraction():
                 return f"{refraction()[0].M:.2f} D"
 
     with ui.card():
         ui.card_header("Refraction as function of eccentricity")
-        
+
         @render.plot
         def plot_refraction():
             fig, ax = plt.subplots()
-        
+
             ax.plot(range(0, 90, 5), [r.M for r in refraction()])
             ax.set_xlabel("Eccentricity [°]")
             ax.set_ylabel("Refraction [D]")
-        
+
             return fig
 
-
 ## file: requirements.txt
-https://haasj.es/wheels/numba-0.61.2-py3-none-any.whl
-https://haasj.es/wheels/vtk-9.4.2-py3-none-any.whl
+https://raw.githubusercontent.com/MREYE-LUMC/demos/refs/heads/main/_assets/wheels/numba-0.61.2-py3-none-any.whl
+https://raw.githubusercontent.com/MREYE-LUMC/demos/refs/heads/main/_assets/wheels/vtk-9.4.2-py3-none-any.whl
 https://haasj.es/wheels/visisipy-0.0.1.post18+gb146992-py3-none-any.whl
 
 numpy
