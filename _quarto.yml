@@ -4,6 +4,7 @@ project:
   resources:
     - "edit.html"
     - "_includes/mdr.js"
+    - "_assets/**"
 
 website:
   title: "MReye demos"
