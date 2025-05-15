@@ -44,7 +44,9 @@ with ui.sidebar(title="Model settings"):
     with ui.accordion(id="eye_model"):
         with ui.accordion_panel("Fields"):
             with ui.card():
-                ui.input_numeric("field_angle", "Field angle [°]", 0, min=0, max=90,  step=5)
+                ui.input_numeric(
+                    "field_angle", "Field angle [°]", 0, min=0, max=90, step=5
+                )
                 ui.input_action_button("add_field", "Add field")
 
             ui.input_selectize(
@@ -56,7 +58,9 @@ with ui.sidebar(title="Model settings"):
             )
 
             ui.input_action_button("clear_fields", "Clear all fields")
-            ui.input_numeric("wavelength", "Wavelength [μm]", 0.543, min=0.38, max=0.75,  step=0.1)
+            ui.input_numeric(
+                "wavelength", "Wavelength [μm]", 0.543, min=0.38, max=0.75, step=0.1
+            )
 
         with ui.accordion_panel("Biometry"):
             ui.input_numeric(
@@ -148,6 +152,22 @@ with ui.sidebar(title="Model settings"):
                 step=0.1,
             )
 
+        with ui.accordion_panel("Retina"):
+            ui.input_numeric(
+                "retina_axial_radius",
+                "Axial radius [mm]",
+                default_geometry.retina.half_axes.axial,
+                max=0,
+                step=1,
+            )
+            ui.input_numeric(
+                "retina_radial_radius",
+                "Radial radius [mm]",
+                default_geometry.retina.half_axes.radial,
+                min=0,
+                step=1,
+            )
+
 
 def update_current_fields_selectize(fields):
     ui.update_selectize(
@@ -189,34 +209,18 @@ def clear_fields():
     update_current_fields_selectize({0})
 
 
-def build_model():
-    geometry = visisipy.create_geometry(
-        axial_length=input.axial_length(),
-        cornea_front_radius=input.cornea_front_radius(),
-        cornea_front_asphericity=input.cornea_front_asphericity(),
-        cornea_back_radius=input.cornea_back_radius(),
-        cornea_back_asphericity=input.cornea_back_asphericity(),
-        cornea_thickness=input.cornea_thickness(),
-        anterior_chamber_depth=input.anterior_chamber_depth(),
-        lens_front_radius=input.lens_front_radius(),
-        lens_front_asphericity=input.lens_front_asphericity(),
-        lens_back_radius=input.lens_back_radius(),
-        lens_back_asphericity=input.lens_back_asphericity(),
-        lens_thickness=input.lens_thickness(),
-        pupil_radius=1,
-    )
-    model = visisipy.EyeModel(geometry)
-    model.build()
-
-    return model
-
-
 @reactive.calc
-def eye_model():
+def eye_model() -> visisipy.EyeModel:
     visisipy.update_settings(
-        fields=[(0, y) for y in fields()],
-        wavelengths=[input.wavelength()]
+        fields=[(0, y) for y in fields()], wavelengths=[input.wavelength()]
     )
+
+    retina_r_z = input.retina_axial_radius()
+    retina_r_y = input.retina_radial_radius()
+    retina_radius = retina_r_y**2 / retina_r_z
+    retina_asphericity = retina_r_y**2 / retina_r_z**2 - 1
+
+    print(retina_radius, retina_asphericity)
 
     geometry = visisipy.create_geometry(
         axial_length=input.axial_length(),
@@ -231,6 +235,8 @@ def eye_model():
         lens_back_radius=input.lens_back_radius(),
         lens_back_asphericity=input.lens_back_asphericity(),
         lens_thickness=input.lens_thickness(),
+        retina_radius=retina_radius,
+        retina_asphericity=retina_asphericity,
         pupil_radius=1,
     )
     model = visisipy.EyeModel(geometry)
@@ -242,7 +248,7 @@ def eye_model():
 @reactive.calc
 def raytrace():
     model = eye_model()
-    
+
     result = visisipy.analysis.raytrace(pupil=(0, 0))
     result.z -= model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
 
@@ -253,53 +259,60 @@ def raytrace():
 def refraction():
     model = eye_model()
 
-    return [visisipy.analysis.refraction(field_coordinate=(0, y)) for y in range(0, 90, 5)]
+    return [
+        visisipy.analysis.refraction(field_coordinate=(0, y)) for y in range(0, 90, 5)
+    ]
 
 
 with ui.layout_columns(col_widths=(12,)):
     with ui.layout_columns(col_widths=(8, 4)):
         with ui.card():
             ui.card_header("Raytrace result")
-            
+
             @render.plot
             def plot_raytrace():
                 model = eye_model()
-            
+
+                x_min = -(model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth + 3)
+                x_max = model.geometry.lens_thickness + model.geometry.vitreous_thickness + 3
+                y_max = model.geometry.retina.half_axes.radial + 3
+                y_min = -y_max
+
                 fig, ax = plt.subplots()
                 visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
-                ax.set_xlim((-7, 23))
-                ax.set_ylim((-15, 15))
+                ax.set_xlim((x_min, x_max))
+                ax.set_ylim((y_min, y_max))
                 ax.set_aspect("equal")
-            
+
                 sns.lineplot(raytrace(), x="z", y="y", hue="field", ax=ax, legend=False)
-            
+
                 return fig
-        
-        
-        with ui.value_box(showcase=faicons.icon_svg("glasses", width="50px"), theme="blue"):
+
+        with ui.value_box(
+            showcase=faicons.icon_svg("glasses", width="50px"), theme="blue"
+        ):
             "Central refraction"
-        
+
             @render.ui
             def central_refraction():
                 return f"{refraction()[0].M:.2f} D"
 
     with ui.card():
         ui.card_header("Refraction as function of eccentricity")
-        
+
         @render.plot
         def plot_refraction():
             fig, ax = plt.subplots()
-        
+
             ax.plot(range(0, 90, 5), [r.M for r in refraction()])
             ax.set_xlabel("Eccentricity [°]")
             ax.set_ylabel("Refraction [D]")
-        
+
             return fig
 
-
 ## file: requirements.txt
-https://haasj.es/wheels/numba-0.61.2-py3-none-any.whl
-https://haasj.es/wheels/vtk-9.4.2-py3-none-any.whl
+https://raw.githubusercontent.com/MREYE-LUMC/demos/refs/heads/main/_assets/wheels/numba-0.61.2-py3-none-any.whl
+https://raw.githubusercontent.com/MREYE-LUMC/demos/refs/heads/main/_assets/wheels/vtk-9.4.2-py3-none-any.whl
 visisipy >= 0.1.0b1
 
 numpy
