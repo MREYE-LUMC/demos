@@ -33,6 +33,9 @@ from shiny import reactive, ui as cui
 from shiny.express import input, render, ui
 import seaborn as sns
 
+plt.rcParams["axes.grid"] = True
+plt.rcParams["grid.linestyle"] = ":"
+
 visisipy.set_backend("optiland")
 
 default_geometry = visisipy.NavarroGeometry()
@@ -298,15 +301,19 @@ with ui.layout_columns(col_widths=(12,)):
                 return f"{refraction()[0].M:.2f} D"
 
     with ui.card():
-        ui.card_header("Refraction as function of eccentricity")
+        ui.card_header("Fourier power vector as function of eccentricity")
 
         @render.plot
         def plot_refraction():
             fig, ax = plt.subplots()
 
-            ax.plot(range(0, 90, 5), [r.M for r in refraction()])
+            ax.plot(range(0, 90, 5), [r.M for r in refraction()], label="$M$")
+            ax.plot(range(0, 90, 5), [r.J0 for r in refraction()], label="$J_0$")
+            ax.plot(range(0, 90, 5), [r.J45 for r in refraction()], label="$J_{45}$")
+            ax.legend()
+            ax.grid(ls=":")
             ax.set_xlabel("Eccentricity [°]")
-            ax.set_ylabel("Refraction [D]")
+            ax.set_ylabel("Power vector [D]")
 
             return fig
 
