@@ -300,7 +300,7 @@ with ui.layout_columns(col_widths=(12,)):
 ## file: requirements.txt
 https://haasj.es/wheels/numba-0.61.2-py3-none-any.whl
 https://haasj.es/wheels/vtk-9.4.2-py3-none-any.whl
-https://haasj.es/wheels/visisipy-0.0.1.post18+gb146992-py3-none-any.whl
+visisipy >= 0.1.0b1
 
 numpy
 scipy
