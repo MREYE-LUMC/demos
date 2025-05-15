@@ -55,7 +55,7 @@ with ui.sidebar(title="Model settings"):
             ui.input_selectize(
                 "current_fields",
                 "Current fields",
-                {str(i): f"{i} °" for i in _initial_fields},
+                {str(i): f"{i} °" for i in sorted(_initial_fields)},
                 selected=list(map(str, _initial_fields)),
                 multiple=True,
             )
