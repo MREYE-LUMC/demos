@@ -212,12 +212,16 @@ def clear_fields():
     update_current_fields_selectize({0})
 
 
+@reactive.effect
 @reactive.calc
-def eye_model() -> visisipy.EyeModel:
+def update_backend_settings():
     visisipy.update_settings(
         fields=[(0, y) for y in fields()], wavelengths=[input.wavelength()]
     )
 
+
+@reactive.calc
+def eye_model() -> visisipy.EyeModel:
     retina_r_z = input.retina_axial_radius()
     retina_r_y = input.retina_radial_radius()
     retina_radius = retina_r_y**2 / retina_r_z
@@ -250,6 +254,10 @@ def eye_model() -> visisipy.EyeModel:
 
 @reactive.calc
 def raytrace():
+    # Depend on wavelength and fields
+    fields()
+    input.wavelength()
+    
     model = eye_model()
 
     result = visisipy.analysis.raytrace(pupil=(0, 0))
@@ -260,6 +268,9 @@ def raytrace():
 
 @reactive.calc
 def refraction():
+    # Depend on wavelength
+    input.wavelength()
+    
     model = eye_model()
 
     return [
@@ -318,8 +329,8 @@ with ui.layout_columns(col_widths=(12,)):
             return fig
 
 ## file: requirements.txt
-https://raw.githubusercontent.com/MREYE-LUMC/demos/refs/heads/main/_assets/wheels/numba-0.61.2-py3-none-any.whl
-https://raw.githubusercontent.com/MREYE-LUMC/demos/refs/heads/main/_assets/wheels/vtk-9.4.2-py3-none-any.whl
+demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
+demo.mreye.nl/_assets/wheels/vtk-9.4.2-py3-none-any.whl
 visisipy >= 0.1.0b1
 
 numpy
