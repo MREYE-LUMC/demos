@@ -29,12 +29,15 @@ Loading may take a while due to the installation of visisipy's dependencies.
 import visisipy
 import faicons
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 plt.rcParams["axes.grid"] = True
 plt.rcParams["grid.linestyle"] = ":"
+
+pd.options.display.float_format = "{:,.2f}".format
 
 visisipy.set_backend("optiland")
 
@@ -183,18 +186,22 @@ app_ui = ui.page_fluid(
         ),
         ui.row(
             ui.column(
-                8,
+                6,
                 ui.card(
                     ui.card_header("Raytrace result"), ui.output_plot("plot_raytrace")
                 ),
             ),
             ui.column(
-                4,
+                6,
                 ui.value_box(
                     title="Central refraction",
                     value=ui.output_ui("central_refraction"),
                     showcase=faicons.icon_svg("glasses", width="50px"),
                     theme="blue",
+                ),
+                ui.card(
+                    ui.card_header("Refraction by field"),
+                    ui.output_table("table_properties"),
                 ),
             ),
         ),
@@ -336,6 +343,29 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         return fig
 
+    @render.table
+    def table_properties():
+        data = []
+
+        for field in fields():
+            refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
+
+            data.append(
+                {
+                    "Field": f"{field} °",
+                    "M": refraction.M,
+                    "J0": refraction.J0,
+                    "J45": refraction.J45,
+                }
+            )
+
+        df = pd.DataFrame(data)
+        return (
+            df.style.format(precision=2)
+            .hide(axis="index")
+            .set_table_styles([dict(selector="th", props=[("text-align", "left")])])
+        )
+
     @render.ui
     def central_refraction():
         return f"{refraction()[0].M:.2f} D"
@@ -357,9 +387,10 @@ def server(input: Inputs, output: Outputs, session: Session):
 
 app = App(app_ui, server)
 
+
 ## file: requirements.txt
-demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
-demo.mreye.nl/_assets/wheels/vtk-9.4.2-py3-none-any.whl
+https://demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
+https://demo.mreye.nl/_assets/wheels/vtk-9.4.2-py3-none-any.whl
 visisipy >= 0.1.0b1
 
 numpy
