@@ -315,10 +315,15 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         model = eye_model()
 
-        return [
+        refractions = [
             visisipy.analysis.refraction(field_coordinate=(0, y))
             for y in range(0, 90, 5)
         ]
+
+        # Reset field settings
+        visisipy.update_settings()
+
+        return refractions
 
     # Outputs
 
@@ -341,6 +346,9 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         sns.lineplot(raytrace(), x="z", y="y", hue="field", ax=ax, legend=False)
 
+        print(visisipy.get_backend().get_setting("fields"))
+        print(raytrace())
+
         return fig
 
     @render.table
@@ -358,6 +366,9 @@ def server(input: Inputs, output: Outputs, session: Session):
                     "J45": refraction.J45,
                 }
             )
+
+        # Reset field settings
+        visisipy.update_settings()
 
         df = pd.DataFrame(data)
         return (
