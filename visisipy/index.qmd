@@ -355,7 +355,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def table_properties():
         data = []
 
-        for field in fields():
+        for field in sorted(fields()):
             refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
 
             data.append(
