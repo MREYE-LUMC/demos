@@ -330,7 +330,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth + 3
         )
         x_max = model.geometry.lens_thickness + model.geometry.vitreous_thickness + 3
-        y_max = model.geometry.retina.half_axes.radial + 3
+        y_max = model.geometry.retina.ellipsoid_radii.y + 3
         y_min = -y_max
 
         fig, ax = plt.subplots()
