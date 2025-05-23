@@ -363,7 +363,7 @@ def server(input: Inputs, output: Outputs, session: Session):
                     "M [D]": refraction.M,
                     "J0 [D]": refraction.J0,
                     "J45 [D]": refraction.J45,
-                    "RMS HOA [μm]": f"{rms_hoa:#.2e}",
+                    "RMS HOA [μm]": f"{rms_hoa:.2e}",
                 }
             )
 
