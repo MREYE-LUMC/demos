@@ -156,16 +156,16 @@ model_parameters = {
     ],
     "Retina": [
         ui.input_numeric(
-            "retina_axial_radius",
-            "Axial radius [mm]",
-            default_geometry.retina.half_axes.axial,
+            "retina_ellipsoid_z_radius",
+            "Z radius [mm]",
+            default_geometry.retina.ellipsoid_radii.z,
             max=0,
             step=1,
         ),
         ui.input_numeric(
-            "retina_radial_radius",
-            "Radial radius [mm]",
-            default_geometry.retina.half_axes.radial,
+            "retina_ellipsoid_y_radius",
+            "Y radius [mm]",
+            default_geometry.retina.ellipsoid_radii.y,
             min=0,
             step=1,
         ),
@@ -266,11 +266,6 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @reactive.calc
     def eye_model() -> visisipy.EyeModel:
-        retina_r_z = input.retina_axial_radius()
-        retina_r_y = input.retina_radial_radius()
-        retina_radius = retina_r_y**2 / retina_r_z
-        retina_asphericity = retina_r_y**2 / retina_r_z**2 - 1
-
         geometry = visisipy.create_geometry(
             axial_length=input.axial_length(),
             cornea_front_radius=input.cornea_front_radius(),
@@ -284,8 +279,8 @@ def server(input: Inputs, output: Outputs, session: Session):
             lens_back_radius=input.lens_back_radius(),
             lens_back_asphericity=input.lens_back_asphericity(),
             lens_thickness=input.lens_thickness(),
-            retina_radius=retina_radius,
-            retina_asphericity=retina_asphericity,
+            retina_ellipsoid_z_radius=input.retina_ellipsoid_z_radius(),
+            retina_ellipsoid_y_radius=input.retina_ellipsoid_y_radius(),
             pupil_radius=1,
         )
         model = visisipy.EyeModel(geometry)
@@ -357,13 +352,18 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         for field in sorted(fields()):
             refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
+            rms_hoa = (
+                visisipy.analysis.rms_hoa(field_coordinate=(0, field))
+                * input.wavelength()
+            )
 
             data.append(
                 {
                     "Field": f"{field} °",
-                    "M": refraction.M,
-                    "J0": refraction.J0,
-                    "J45": refraction.J45,
+                    "M [D]": refraction.M,
+                    "J0 [D]": refraction.J0,
+                    "J45 [D]": refraction.J45,
+                    "RMS HOA [μm]": f"{rms_hoa:#.2e}",
                 }
             )
 
@@ -402,7 +402,7 @@ app = App(app_ui, server)
 ## file: requirements.txt
 https://demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
 https://demo.mreye.nl/_assets/wheels/vtk-9.4.2-py3-none-any.whl
-visisipy >= 0.1.0b1
+visisipy >= 0.1.0b2
 
 numpy
 scipy
