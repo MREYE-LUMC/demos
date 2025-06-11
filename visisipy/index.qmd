@@ -126,6 +126,15 @@ model_parameters = {
             step=0.1,
         ),
     ],
+    "Pupil": [
+        ui.input_numeric(
+            "pupil_diameter",
+            "Diameter [mm]",
+            2.0,
+            min=0,
+            step=1,
+        ),
+    ],
     "Lens front": [
         ui.input_numeric(
             "lens_front_radius",
@@ -263,11 +272,16 @@ def server(input: Inputs, output: Outputs, session: Session):
     @reactive.calc
     def update_backend_settings():
         visisipy.update_settings(
-            fields=[(0, y) for y in fields()], wavelengths=[input.wavelength()], aperture_value=2
+            fields=[(0, y) for y in fields()],
+            wavelengths=[input.wavelength()],
+            aperture_value=input.pupil_diameter(),
         )
 
     @reactive.calc
     def eye_model() -> visisipy.EyeModel:
+        # Depend on pupil diameter
+        input.pupil_diameter()
+
         geometry = visisipy.create_geometry(
             axial_length=input.axial_length(),
             cornea_front_radius=input.cornea_front_radius(),
