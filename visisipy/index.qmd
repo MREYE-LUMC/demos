@@ -329,9 +329,10 @@ def server(input: Inputs, output: Outputs, session: Session):
         optic = visisipy.backend.get_optic()
         viewer = OpticViewer(optic)
 
-        x_min = -3
-        x_max = model.geometry.axial_length + 3
-        y_max = model.geometry.retina.ellipsoid_radii.y + 3
+        margin = 3
+        x_min = -margin
+        x_max = model.geometry.axial_length + margin
+        y_max = model.geometry.retina.ellipsoid_radii.y + margin
         y_min = -y_max
 
         fig, ax = plt.subplots()
