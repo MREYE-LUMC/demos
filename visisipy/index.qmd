@@ -32,7 +32,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from optiland.visualization import OpticViewer
+from itertools import cycle
+from matplotlib.colors import TABLEAU_COLORS
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 plt.rcParams["axes.grid"] = True
@@ -262,7 +263,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     @reactive.calc
     def update_backend_settings():
         visisipy.update_settings(
-            fields=[(0, y) for y in fields()], wavelengths=[input.wavelength()]
+            fields=[(0, y) for y in fields()], wavelengths=[input.wavelength()], aperture_value=2
         )
 
     @reactive.calc
@@ -293,14 +294,26 @@ def server(input: Inputs, output: Outputs, session: Session):
     def raytrace():
         # Depend on wavelength and fields
         fields()
-        input.wavelength()
+        wavelength = input.wavelength()
 
         model = eye_model()
-
-        result = visisipy.analysis.raytrace(pupil=(0, 0))
-        result.z -= (
+        optic = visisipy.backend.get_optic()
+        anterior_segment_length = (
             model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
         )
+
+        result = []
+
+        # Use a custom raytrace approach for improved visualization
+        for field in optic.fields.get_field_coords():
+            optic.trace(*field, wavelength, 3, "line_y")
+
+            z = optic.surface_group.z
+            y = optic.surface_group.y
+
+            z -= anterior_segment_length
+
+            result.append((z, y))
 
         return result
 
@@ -325,26 +338,31 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @render.plot
     def plot_raytrace():
+        # Depend on wavelength and fields
+        fields()
+        input.wavelength()
+
         model = eye_model()
         optic = visisipy.backend.get_optic()
-        viewer = OpticViewer(optic)
 
         margin = 3
-        x_min = -margin
-        x_max = model.geometry.axial_length + margin
+        x_min = -(
+            model.geometry.cornea_thickness
+            + model.geometry.anterior_chamber_depth
+            + margin
+        )
+        x_max = (
+            model.geometry.lens_thickness + model.geometry.vitreous_thickness + margin
+        )
         y_max = model.geometry.retina.ellipsoid_radii.y + margin
         y_min = -y_max
 
         fig, ax = plt.subplots()
-        viewer.rays.plot(
-            ax,
-            fields="all",
-            wavelengths="primary",
-            num_rays=3,
-            distribution="line_y",
-            reference=None,
-        )
-        viewer.system.plot(ax)
+
+        for (z, y), c in zip(raytrace(), cycle(TABLEAU_COLORS)):
+            ax.plot(z, y, color=c)
+
+        visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
 
         ax.set_xlabel("Z [mm]")
         ax.set_ylabel("Y [mm]")
@@ -406,7 +424,6 @@ def server(input: Inputs, output: Outputs, session: Session):
 
 
 app = App(app_ui, server)
-
 
 ## file: requirements.txt
 https://demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
