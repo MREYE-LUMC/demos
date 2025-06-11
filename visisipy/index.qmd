@@ -352,10 +352,6 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         for field in sorted(fields()):
             refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
-            rms_hoa = (
-                visisipy.analysis.rms_hoa(field_coordinate=(0, field))
-                * input.wavelength()
-            )
 
             data.append(
                 {
@@ -363,7 +359,6 @@ def server(input: Inputs, output: Outputs, session: Session):
                     "M [D]": refraction.M,
                     "J0 [D]": refraction.J0,
                     "J45 [D]": refraction.J45,
-                    "RMS HOA [μm]": f"{rms_hoa:.2e}",
                 }
             )
 
