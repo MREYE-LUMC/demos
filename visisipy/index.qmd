@@ -32,6 +32,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+from optiland.visualization import OpticViewer
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 plt.rcParams["axes.grid"] = True
@@ -325,24 +326,31 @@ def server(input: Inputs, output: Outputs, session: Session):
     @render.plot
     def plot_raytrace():
         model = eye_model()
+        optic = visisipy.backend.get_optic()
+        viewer = OpticViewer(optic)
 
-        x_min = -(
-            model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth + 3
-        )
-        x_max = model.geometry.lens_thickness + model.geometry.vitreous_thickness + 3
+        x_min = -3
+        x_max = model.geometry.axial_length + 3
         y_max = model.geometry.retina.ellipsoid_radii.y + 3
         y_min = -y_max
 
         fig, ax = plt.subplots()
-        visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
-        ax.set_xlim((x_min, x_max))
-        ax.set_ylim((y_min, y_max))
+        viewer.rays.plot(
+            ax,
+            fields="all",
+            wavelengths="primary",
+            num_rays=3,
+            distribution="line_y",
+            reference=None,
+        )
+        viewer.system.plot(ax)
+
+        ax.set_xlabel("Z [mm]")
+        ax.set_ylabel("Y [mm]")
+
         ax.set_aspect("equal")
-
-        sns.lineplot(raytrace(), x="z", y="y", hue="field", ax=ax, legend=False)
-
-        print(visisipy.get_backend().get_setting("fields"))
-        print(raytrace())
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
 
         return fig
 
