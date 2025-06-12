@@ -32,6 +32,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+from itertools import cycle
+from matplotlib.colors import TABLEAU_COLORS
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 plt.rcParams["axes.grid"] = True
@@ -122,6 +124,15 @@ model_parameters = {
             "Asphericity [-]",
             default_geometry.cornea_back.asphericity,
             step=0.1,
+        ),
+    ],
+    "Pupil": [
+        ui.input_numeric(
+            "pupil_diameter",
+            "Diameter [mm]",
+            2.0,
+            min=0,
+            step=1,
         ),
     ],
     "Lens front": [
@@ -261,11 +272,16 @@ def server(input: Inputs, output: Outputs, session: Session):
     @reactive.calc
     def update_backend_settings():
         visisipy.update_settings(
-            fields=[(0, y) for y in fields()], wavelengths=[input.wavelength()]
+            fields=[(0, y) for y in fields()],
+            wavelengths=[input.wavelength()],
+            aperture_value=input.pupil_diameter(),
         )
 
     @reactive.calc
     def eye_model() -> visisipy.EyeModel:
+        # Depend on pupil diameter
+        input.pupil_diameter()
+
         geometry = visisipy.create_geometry(
             axial_length=input.axial_length(),
             cornea_front_radius=input.cornea_front_radius(),
@@ -292,14 +308,26 @@ def server(input: Inputs, output: Outputs, session: Session):
     def raytrace():
         # Depend on wavelength and fields
         fields()
-        input.wavelength()
+        wavelength = input.wavelength()
 
         model = eye_model()
-
-        result = visisipy.analysis.raytrace(pupil=(0, 0))
-        result.z -= (
+        optic = visisipy.backend.get_optic()
+        anterior_segment_length = (
             model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
         )
+
+        result = []
+
+        # Use a custom raytrace approach for improved visualization
+        for field in optic.fields.get_field_coords():
+            optic.trace(*field, wavelength, 3, "line_y")
+
+            z = optic.surface_group.z
+            y = optic.surface_group.y
+
+            z -= anterior_segment_length
+
+            result.append((z, y))
 
         return result
 
@@ -324,25 +352,38 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @render.plot
     def plot_raytrace():
-        model = eye_model()
+        # Depend on wavelength and fields
+        fields()
+        input.wavelength()
 
+        model = eye_model()
+        optic = visisipy.backend.get_optic()
+
+        margin = 3
         x_min = -(
-            model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth + 3
+            model.geometry.cornea_thickness
+            + model.geometry.anterior_chamber_depth
+            + margin
         )
-        x_max = model.geometry.lens_thickness + model.geometry.vitreous_thickness + 3
-        y_max = model.geometry.retina.ellipsoid_radii.y + 3
+        x_max = (
+            model.geometry.lens_thickness + model.geometry.vitreous_thickness + margin
+        )
+        y_max = model.geometry.retina.ellipsoid_radii.y + margin
         y_min = -y_max
 
         fig, ax = plt.subplots()
+
+        for (z, y), c in zip(raytrace(), cycle(TABLEAU_COLORS)):
+            ax.plot(z, y, color=c)
+
         visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
-        ax.set_xlim((x_min, x_max))
-        ax.set_ylim((y_min, y_max))
+
+        ax.set_xlabel("Z [mm]")
+        ax.set_ylabel("Y [mm]")
+
         ax.set_aspect("equal")
-
-        sns.lineplot(raytrace(), x="z", y="y", hue="field", ax=ax, legend=False)
-
-        print(visisipy.get_backend().get_setting("fields"))
-        print(raytrace())
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
 
         return fig
 
@@ -392,7 +433,6 @@ def server(input: Inputs, output: Outputs, session: Session):
 
 
 app = App(app_ui, server)
-
 
 ## file: requirements.txt
 https://demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
