@@ -218,12 +218,19 @@ app_ui = ui.page_fluid(
         ),
         ui.row(
             ui.column(
-                12,
+                8,
                 ui.card(
                     ui.card_header("Fourier power vector as function of eccentricity"),
                     ui.output_plot("plot_power_vectors"),
                 ),
-            )
+            ),
+            ui.column(
+                4,
+                ui.card(
+                    ui.card_header("Central FFT PSF"),
+                    ui.output_plot("plot_fft_psf"),
+                ),
+            ),
         ),
     )
 )
@@ -393,6 +400,9 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         for field in sorted(fields()):
             refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
+            strehl_ratio = visisipy.analysis.strehl_ratio(
+                field_coordinate=(0, field), psf_type="fft"
+            )
 
             data.append(
                 {
@@ -400,6 +410,7 @@ def server(input: Inputs, output: Outputs, session: Session):
                     "M [D]": refraction.M,
                     "J0 [D]": refraction.J0,
                     "J45 [D]": refraction.J45,
+                    "Strehl ratio": strehl_ratio,
                 }
             )
 
@@ -428,6 +439,29 @@ def server(input: Inputs, output: Outputs, session: Session):
         ax.grid(ls=":")
         ax.set_xlabel("Eccentricity [°]")
         ax.set_ylabel("Power vector [D]")
+
+        return fig
+
+    @render.plot
+    def plot_fft_psf():
+        # Depend on the eye model
+        eye_model()
+
+        fig, ax = plt.subplots()
+
+        psf = visisipy.analysis.fft_psf(
+            field_coordinate=(0, 0), wavelength=input.wavelength()
+        )
+
+        im = ax.imshow(
+            psf,
+            extent=(psf.columns[0], psf.columns[-1], psf.index[-1], psf.index[0]),
+            origin="lower",
+        )
+        ax.set_xlabel("X [μm]")
+        ax.set_ylabel("Y [μm]")
+
+        plt.colorbar(im, ax=ax)
 
         return fig
 
