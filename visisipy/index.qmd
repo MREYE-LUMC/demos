@@ -437,7 +437,7 @@ app = App(app_ui, server)
 ## file: requirements.txt
 https://demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
 https://demo.mreye.nl/_assets/wheels/vtk-9.4.2-py3-none-any.whl
-visisipy >= 0.1.0b2
+visisipy >= 0.1.0b3
 
 numpy
 scipy
