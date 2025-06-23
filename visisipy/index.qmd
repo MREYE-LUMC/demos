@@ -33,8 +33,7 @@ import pandas as pd
 import seaborn as sns
 
 from itertools import cycle
-from matplotlib.colors import TABLEAU_COLORS
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.colors import TABLEAU_COLORS, LogNorm
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 plt.rcParams["axes.grid"] = True
@@ -459,6 +458,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             psf,
             extent=(psf.columns[0], psf.columns[-1], psf.index[-1], psf.index[0]),
             origin="lower",
+            norm=LogNorm(vmin=1e-5),
         )
         ax.set_xlabel("X [μm]")
         ax.set_ylabel("Y [μm]")
