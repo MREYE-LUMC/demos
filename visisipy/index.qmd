@@ -34,6 +34,7 @@ import seaborn as sns
 
 from itertools import cycle
 from matplotlib.colors import TABLEAU_COLORS
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 plt.rcParams["axes.grid"] = True
@@ -213,17 +214,25 @@ app_ui = ui.page_fluid(
                 ui.card(
                     ui.card_header("Refraction by field"),
                     ui.output_table("table_properties"),
+                    "Note: J45 is always 0, because this demo does not support astigmatic eyes."
                 ),
             ),
         ),
         ui.row(
             ui.column(
-                12,
+                8,
                 ui.card(
                     ui.card_header("Fourier power vector as function of eccentricity"),
                     ui.output_plot("plot_power_vectors"),
                 ),
-            )
+            ),
+            ui.column(
+                4,
+                ui.card(
+                    ui.card_header("Central FFT PSF"),
+                    ui.output_plot("plot_fft_psf"),
+                ),
+            ),
         ),
     )
 )
@@ -393,6 +402,9 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         for field in sorted(fields()):
             refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
+            strehl_ratio = visisipy.analysis.strehl_ratio(
+                field_coordinate=(0, field), psf_type="fft"
+            )
 
             data.append(
                 {
@@ -400,6 +412,7 @@ def server(input: Inputs, output: Outputs, session: Session):
                     "M [D]": refraction.M,
                     "J0 [D]": refraction.J0,
                     "J45 [D]": refraction.J45,
+                    "Strehl ratio": strehl_ratio,
                 }
             )
 
@@ -431,13 +444,36 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         return fig
 
+    @render.plot
+    def plot_fft_psf():
+        # Depend on the eye model
+        eye_model()
+
+        fig, ax = plt.subplots()
+
+        psf = visisipy.analysis.fft_psf(
+            field_coordinate=(0, 0), wavelength=input.wavelength()
+        )
+
+        im = ax.imshow(
+            psf,
+            extent=(psf.columns[0], psf.columns[-1], psf.index[-1], psf.index[0]),
+            origin="lower",
+        )
+        ax.set_xlabel("X [μm]")
+        ax.set_ylabel("Y [μm]")
+
+        plt.colorbar(im, ax=ax, use_gridspec=True, fraction=0.05, label="Relative intensity")
+
+        return fig
+
 
 app = App(app_ui, server)
 
 ## file: requirements.txt
 https://demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
 https://demo.mreye.nl/_assets/wheels/vtk-9.4.2-py3-none-any.whl
-visisipy >= 0.1.0b2
+visisipy >= 0.1.0b3
 
 numpy
 scipy
