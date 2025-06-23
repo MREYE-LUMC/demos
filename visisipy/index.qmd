@@ -34,6 +34,7 @@ import seaborn as sns
 
 from itertools import cycle
 from matplotlib.colors import TABLEAU_COLORS
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 plt.rcParams["axes.grid"] = True
@@ -461,7 +462,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         ax.set_xlabel("X [μm]")
         ax.set_ylabel("Y [μm]")
 
-        plt.colorbar(im, ax=ax)
+        plt.colorbar(im, ax=ax, use_gridspec=True, fraction=0.05, label="Relative intensity")
 
         return fig
 
