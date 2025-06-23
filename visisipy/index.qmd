@@ -214,6 +214,7 @@ app_ui = ui.page_fluid(
                 ui.card(
                     ui.card_header("Refraction by field"),
                     ui.output_table("table_properties"),
+                    "Note: J45 is always 0, because this demo does not support astigmatic eyes."
                 ),
             ),
         ),
