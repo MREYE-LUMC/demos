@@ -397,6 +397,10 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @render.table
     def table_properties():
+        # Depend on eye model and wavelength
+        eye_model()
+        input.wavelength()
+
         data = []
 
         for field in sorted(fields()):
