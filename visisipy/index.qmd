@@ -134,7 +134,7 @@ model_parameters = {
         ui.input_numeric(
             "pupil_diameter",
             "Diameter [mm]",
-            2.0,
+            default_parameters["pupil_diameter"],
             min=0,
             step=1,
         ),
@@ -360,9 +360,6 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @reactive.calc
     def eye_model() -> visisipy.EyeModel:
-        # Depend on pupil diameter
-        input.pupil_diameter()
-
         geometry = visisipy.create_geometry(
             axial_length=input.axial_length(),
             cornea_front_radius=input.cornea_front_radius(),
@@ -378,7 +375,7 @@ def server(input: Inputs, output: Outputs, session: Session):
             lens_thickness=input.lens_thickness(),
             retina_ellipsoid_z_radius=input.retina_ellipsoid_z_radius(),
             retina_ellipsoid_y_radius=input.retina_ellipsoid_y_radius(),
-            pupil_radius=1,
+            pupil_radius=input.pupil_diameter() / 2,
         )
         model = visisipy.EyeModel(geometry)
         model.build()
@@ -552,7 +549,7 @@ app = App(app_ui, server)
 ## file: requirements.txt
 https://demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
 https://demo.mreye.nl/_assets/wheels/vtk-9.4.2-py3-none-any.whl
-visisipy >= 0.1.0b3
+visisipy >= 0.1.0b4
 
 numpy
 scipy
