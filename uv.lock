@@ -1201,9 +1201,9 @@ dependencies = [
 requires-dist = [
     { name = "lzstring", specifier = ">=1.0.4" },
     { name = "python-frontmatter", specifier = ">=1.1.0" },
-    { name = "quarto-cli", specifier = ">=1.7.30" },
+    { name = "quarto-cli", specifier = ">=1.7.33" },
     { name = "shinylive", specifier = ">=0.8.3" },
-    { name = "visisipy", specifier = ">=0.1.0b3" },
+    { name = "visisipy", specifier = ">=0.1.0" },
 ]
 
 [[package]]
@@ -1916,14 +1916,14 @@ wheels = [
 
 [[package]]
 name = "quarto-cli"
-version = "1.7.30"
+version = "1.7.33"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jupyter" },
     { name = "nbclient" },
     { name = "wheel" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/96/89/557b8358008c094699b20b6ab210175bebb7e0c3be7339c16618852c4779/quarto_cli-1.7.30.tar.gz", hash = "sha256:ed03e4f0064934a16a0c0b5c46ffd1fe0a2f33df7bd711b845d2bb2f086317d9", size = 4616, upload-time = "2025-05-05T19:21:02.295Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/98/758a54a9c068225f81d60bbec7be9a6b8e8e3c81767e5220007be478c298/quarto_cli-1.7.33.tar.gz", hash = "sha256:7bd81050b5f42910fe7a79110bb4e63c22e332dd4cc4c1e1a238777e3505266c", size = 4623, upload-time = "2025-08-06T16:44:52.133Z" }
 
 [[package]]
 name = "questionary"
@@ -2390,7 +2390,7 @@ wheels = [
 
 [[package]]
 name = "visisipy"
-version = "0.1.0b3"
+version = "0.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -2400,9 +2400,9 @@ dependencies = [
     { name = "scipy" },
     { name = "zospy", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/61/67/45481362a003df2de2d0609f85ced0bcae1b0a402c66706ec0eac863d072/visisipy-0.1.0b3.tar.gz", hash = "sha256:99f176f212c06ce6bd3f6f3ad84305ca4949fb2daee03234dd1997d6777bc410", size = 1887662, upload-time = "2025-06-20T13:17:34.123Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/88/08570041a5ae12bb069859a0dda19cd19ea56afa2fed6cf8b9049bdac0af/visisipy-0.1.0.tar.gz", hash = "sha256:2c8918bd055464c61043993b0d8717964506096c8af79b8f2a4d437516ce3dbf", size = 2323379, upload-time = "2025-07-04T16:03:26.406Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ab/90/420edd0ae8e5db0163c8af7d719f344e9a79dc0ff30bc052406b5f412939/visisipy-0.1.0b3-py3-none-any.whl", hash = "sha256:a70df49a88681cd5343e4494e3c7b9ffd625442441ccb20b51aefeb42d1b9d5c", size = 71211, upload-time = "2025-06-20T13:17:33.145Z" },
+    { url = "https://files.pythonhosted.org/packages/35/c6/7bf659367fc98b66b2f11a4f9c537cffd4005a0ad083a64ab434fb03b7e6/visisipy-0.1.0-py3-none-any.whl", hash = "sha256:07ffd4c49c3e5189068073c45503b42f836b7b499da47483ec3cd768ddba9660", size = 74578, upload-time = "2025-07-04T16:03:24.688Z" },
 ]
 
 [[package]]
