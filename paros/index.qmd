@@ -216,7 +216,6 @@ def update_r_lensb():
     eye = eye_model()
 
     lens_curvature, _ = eye.adjust_lens_back(input.se(), update_model=False)
-    print(lens_curvature)
     ui.update_numeric("r_lensb", value=1000 * float(lens_curvature))
 
 
