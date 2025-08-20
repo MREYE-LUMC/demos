@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -1916,14 +1916,14 @@ wheels = [
 
 [[package]]
 name = "quarto-cli"
-version = "1.7.30"
+version = "1.7.33"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jupyter" },
     { name = "nbclient" },
     { name = "wheel" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/96/89/557b8358008c094699b20b6ab210175bebb7e0c3be7339c16618852c4779/quarto_cli-1.7.30.tar.gz", hash = "sha256:ed03e4f0064934a16a0c0b5c46ffd1fe0a2f33df7bd711b845d2bb2f086317d9", size = 4616, upload-time = "2025-05-05T19:21:02.295Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/98/758a54a9c068225f81d60bbec7be9a6b8e8e3c81767e5220007be478c298/quarto_cli-1.7.33.tar.gz", hash = "sha256:7bd81050b5f42910fe7a79110bb4e63c22e332dd4cc4c1e1a238777e3505266c", size = 4623, upload-time = "2025-08-06T16:44:52.133Z" }
 
 [[package]]
 name = "questionary"
