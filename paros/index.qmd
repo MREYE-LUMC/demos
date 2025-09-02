@@ -21,49 +21,86 @@ This integration demonstrates how PAROS can be used to calculate the central mag
 This example is not intended for medical use and does not allow to customize camera-related parameters.
 :::
 
+To calculate the magnification of a fundus image, enter the parameters of the eye in the calculator below.
+If you do not have all required parameters, it is possible to estimate some parameters:
+
+- The posterior corneal curvature can be estimated as $0.81 \times \mathrm{anterior\ corneal\ curvature}$.
+    To do this, click the **Estimate posterior corneal curvature** button.
+- The posterior lens curvature can be fitted from the spherical equivalent of refraction.
+    To do this, click the **Fit posterior lens curvature** button.
+
 :::{.column-screen-inset}
 ```{shinylive-python}
 #| standalone: true
-#| viewerHeight: 900
+#| viewerHeight: 1000
 ## file: app.py
+from shiny import reactive
 from shiny.express import input, render, ui
 from dataclasses import dataclass
 from pandas import Series, DataFrame
 
+
 def import_paros():
     """Hack needed because importing sympy (via paros) breaks printing"""
     from PAROS.fundscale import Eye, Camera, PhakicIOL, calculate_magnification
+
     return Eye, Camera, PhakicIOL, calculate_magnification
 
-ui.tags.style(
-    "table { display: block; }",
-    "th, td { padding: 0px 10px 0px 0px; }"
-)
+
+ui.tags.style("table { display: block; }", "th, td { padding: 0px 10px 0px 0px; }")
 
 with ui.card():
     ui.card_header("Eye model parameters")
-    ui.input_select(
-        "model_type",
-        "Model type",
-        ("Phakic", "Pseudophakic", "pIOL"),
-        selected="Phakic",
-    )
-
-    with ui.layout_columns():
-        ui.input_numeric("r_corf", "Anterior corneal curvature (mm)", 7.72, min=0, step=0.1)
-        ui.input_numeric("r_corb", "Posterior corneal curvature (mm)", 6.50, min=0, step=0.1)
-        ui.input_numeric("r_lensf", "Anterior lens curvature (mm)", 10.2, min=0, step=0.5)
-        ui.input_numeric("r_lensb", "Posterior lens curvature (mm)", 6.0, min=0, step=0.5)
-        ui.input_numeric("d_cor", "Corneal thickness (mm)", 0.55, min=0, step=0.1)
-        ui.input_numeric("d_acd", "Anterior chamber depth (mm)", 3.05, min=0, step=0.1)
-        ui.input_numeric("d_lens", "Crystalline lens thickness (mm)", 4, min=0, step=0.5)
-        ui.input_numeric("d_vitr", "Vitreous chamber depth (mm)", 16.3203, min=0,  step=.5)
-        ui.input_numeric(
-            "se", "Spherical eq. of refraction (D)", 0, min=-10, max=10, step=0.5
+    with ui.card():
+        ui.input_select(
+            "model_type",
+            "Model type",
+            ("Phakic", "Pseudophakic", "pIOL"),
+            selected="Phakic",
         )
+
+    with ui.card():
+        with ui.layout_columns():
+            ui.input_numeric(
+                "r_corf", "Anterior corneal curvature (mm)", 7.72, min=0, step=0.1
+            )
+            ui.input_numeric(
+                "r_corb", "Posterior corneal curvature (mm)", 6.50, min=0, step=0.1
+            )
+            ui.input_numeric(
+                "r_lensf", "Anterior lens curvature (mm)", 10.2, min=0, step=0.5
+            )
+            ui.input_numeric(
+                "r_lensb", "Posterior lens curvature (mm)", 6.0, min=0, step=0.5
+            )
+            ui.input_numeric("d_cor", "Corneal thickness (mm)", 0.55, min=0, step=0.1)
+            ui.input_numeric(
+                "d_acd", "Anterior chamber depth (mm)", 3.05, min=0, step=0.1
+            )
+            ui.input_numeric(
+                "d_lens", "Crystalline lens thickness (mm)", 4, min=0, step=0.5
+            )
+            ui.input_numeric(
+                "d_vitr", "Vitreous chamber depth (mm)", 16.3203, min=0, step=0.5
+            )
+            ui.input_numeric(
+                "se", "Spherical eq. of refraction (D)", 0, min=-10, max=10, step=0.5
+            )
 
     with ui.panel_conditional("input.model_type == 'pIOL'"):
         ui.input_numeric("piol_power", "pIOL power", 9, step=0.5)
+
+    with ui.card():
+        with ui.layout_columns():
+            with ui.tooltip(placement="bottom"):
+                ui.input_action_button(
+                    "estimate_r_corb", "Estimate posterior corneal curvature"
+                )
+                "Calculate the posterior cornea curvature as 0.81 × anterior corneal curvature"
+
+            with ui.tooltip(placement="bottom"):
+                ui.input_action_button("fit_r_lensb", "Fit posterior lens curvature")
+                "Fit the lens back curvature to the specified spherical equivalent"
 
 with ui.card():
     ui.card_header("Camera parameters")
@@ -151,31 +188,55 @@ def piol_eye(Eye, PhakicIOL):
     )
 
 
+@reactive.calc
+def eye_model():
+    Eye, _, PhakicIOL, _ = import_paros()
+
+    if input.model_type() == "Phakic":
+        return phakic_eye(Eye)
+
+    if input.model_type() == "Pseudophakic":
+        return pseudophakic_eye(Eye)
+
+    if input.model_type() == "pIOL":
+        return piol_eye(Eye, PhakicIOL)
+
+    raise ValueError(f"{input.model_type()} is not supported")
+
+
+@reactive.effect
+@reactive.event(input.estimate_r_corb)
+def update_r_corb():
+    ui.update_numeric("r_corb", value=round(0.81 * input.r_corf(), 2))
+
+
+@reactive.effect
+@reactive.event(input.fit_r_lensb)
+def update_r_lensb():
+    eye = eye_model()
+
+    lens_curvature, _ = eye.adjust_lens_back(input.se(), update_model=False)
+    ui.update_numeric("r_lensb", value=1000 * float(lens_curvature))
+
+
 with ui.card():
     ui.card_header("Result")
-    
+
     @render.ui()
     def calculate():
-        Eye, Camera, PhakicIOL, calculate_magnification = import_paros()
-        if input.model_type() == "Phakic":
-            eye = phakic_eye(Eye)
-        elif input.model_type() == "Pseudophakic":
-            eye = pseudophakic_eye(Eye)
-        elif input.model_type() == "pIOL":
-            eye = piol_eye(Eye, PhakicIOL)
-        else:
-            raise ValueError(f"{input.model_type()} is not supported")
-    
+        _, Camera, PhakicIOL, calculate_magnification = import_paros()
+        eye = eye_model()
+
         camera_f_cond = 0.026347
         camera_a1 = -0.010541
-    
+
         camera = Camera(F_cond=camera_f_cond, a1=camera_a1)
-    
+
         lens_back_curvature, glasses_curvature = eye.adjust_lens_back(
             eye.geometry["SE"], update_model=True
         )
         magnification, glasses_power, _ = calculate_magnification(eye, camera)
-    
+
         return ui.markdown(
             f"| Parameter                             | Value                    |\n"
             f"| ------------------------------------- | ------------------------ |\n"
