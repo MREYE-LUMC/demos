@@ -2178,7 +2178,7 @@ wheels = [
 
 [[package]]
 name = "shinylive"
-version = "0.8.3"
+version = "0.8.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
@@ -2189,9 +2189,9 @@ dependencies = [
     { name = "shiny" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/90/8d/03a7e6c742d9a88be7f0c56d358d09a057a56afe5c16db7e286e7df5d91d/shinylive-0.8.3.tar.gz", hash = "sha256:d84fc9ebd5d6487d814e8a269b8a3f7b34b2fbfabbb1d84aad2c144f4397f44e", size = 27275, upload-time = "2025-04-08T17:05:21.967Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7f/2f/c75077b2dca02339098f799d55ae21a1d87ffe98893df95d6108c2c1c52c/shinylive-0.8.4.tar.gz", hash = "sha256:cc95333f417cbb45c647de176afd1a135bc7df36269db0489f4c8e59ac292501", size = 27395, upload-time = "2025-09-12T14:33:00.633Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/42/94/70cfa97831b2378d14bbdcb583562f5d4618c37db26f4c0dcc69198f31c6/shinylive-0.8.3-py3-none-any.whl", hash = "sha256:cb72da57f08c0f235fa8b2f6592e09fa348dd0f93ec3d0504f237f48aae3e433", size = 29272, upload-time = "2025-04-08T17:05:20.673Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/ff/ff305d32723b5ec80638b7d27dde578313951ec8489e7f3af5ff98c2b449/shinylive-0.8.4-py3-none-any.whl", hash = "sha256:cfa063f9c7e20379d54a932ee194de92b89692dede7076631d8e70b6b81319a0", size = 29396, upload-time = "2025-09-12T14:32:59.669Z" },
 ]
 
 [[package]]
