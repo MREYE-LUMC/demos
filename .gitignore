@@ -17,3 +17,5 @@ site_libs/
 edit.html
 
 /.quarto/
+
+**/*.quarto_ipynb
