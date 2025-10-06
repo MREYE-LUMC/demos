@@ -235,13 +235,10 @@ with ui.card():
         lens_back_curvature, glasses_curvature = eye.adjust_lens_back(
             eye.geometry["SE"], update_model=True
         )
-        magnification, glasses_power, _ = calculate_magnification(eye, camera)
+        magnification, *_ = calculate_magnification(eye, camera)
 
         return ui.markdown(
-            f"| Parameter                             | Value                    |\n"
-            f"| ------------------------------------- | ------------------------ |\n"
-            f"| Magnification eye model               | {abs(magnification):.2f} |\n"
-            f"| Necessary correction at camera phakic | {glasses_power:.2f} |\n"
+            f"**Magnification:** {abs(magnification):.2f}"
         )
 
 
