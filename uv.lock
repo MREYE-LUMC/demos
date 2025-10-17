@@ -1201,7 +1201,7 @@ dependencies = [
 requires-dist = [
     { name = "lzstring", specifier = ">=1.0.4" },
     { name = "python-frontmatter", specifier = ">=1.1.0" },
-    { name = "quarto-cli", specifier = ">=1.7.33" },
+    { name = "quarto-cli", specifier = ">=1.8.25" },
     { name = "shinylive", specifier = ">=0.8.3" },
     { name = "visisipy", specifier = ">=0.1.0" },
 ]
