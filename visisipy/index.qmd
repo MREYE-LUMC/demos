@@ -551,7 +551,7 @@ https://demo.mreye.nl/_assets/wheels/numba-0.61.2-py3-none-any.whl
 https://demo.mreye.nl/_assets/wheels/vtk-9.4.2-py3-none-any.whl
 
 optiland == 0.5.7
-visisipy >= 0.1.0
+visisipy == 0.2.0
 
 numpy
 scipy
