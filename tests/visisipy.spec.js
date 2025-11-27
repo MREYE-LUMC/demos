@@ -15,8 +15,7 @@ test.describe("Visisipy Demo", () => {
 
   test("demo page loads without errors", async ({ page }) => {
     // The demo runs in a shinylive iframe that takes time to render
-    // Wait for a reasonable amount of time for the demo to load
-    // The iframe should not show an error message
+    // We need to wait for the demo to fully load before checking for errors
 
     // Check that the page title is correct
     await expect(page).toHaveTitle(/Ocular ray tracing simulations/);
@@ -30,15 +29,32 @@ test.describe("Visisipy Demo", () => {
     const iframe = page.locator("iframe");
     await expect(iframe).toBeVisible();
 
-    // The shinylive app shows "Error starting app!" if it fails
-    // We need to check that this error message does NOT appear
+    // Wait for the demo to fully load by waiting for UI elements that only appear
+    // when the shinylive app has successfully rendered
+    // The "Model settings" sidebar title appears when the app is loaded
+    const modelSettingsTitle = page.getByText("Model settings");
+
+    // Wait for either the demo to load successfully OR an error to appear
+    // Timeout is set high because shinylive apps can take a while to load dependencies
     const errorMessage = page.getByText("Error starting app!");
 
-    // Wait for the page to finish loading resources
-    await page.waitForLoadState("networkidle");
+    // Poll until either success or failure condition is met
+    // This is more reliable than Promise.race as it checks the state at each poll
+    await expect(async () => {
+      const errorVisible = await errorMessage.isVisible();
+      if (errorVisible) {
+        throw new Error("Demo failed to load: Error starting app!");
+      }
 
-    // Check that the error message is not visible
-    // We wait up to 120 seconds total for the demo to render
-    await expect(errorMessage).not.toBeVisible({ timeout: 120000 });
+      const settingsVisible = await modelSettingsTitle.isVisible();
+      expect(settingsVisible).toBe(true);
+    }).toPass({ timeout: 180000, intervals: [1000, 2000, 5000] });
+
+    // Final verification: error message should not be visible
+    await expect(errorMessage).not.toBeVisible();
+
+    // Verify the demo rendered successfully by checking for key UI elements
+    await expect(page.getByText("Raytrace result")).toBeVisible();
+    await expect(page.getByText("Central spherical equivalent")).toBeVisible();
   });
 });
