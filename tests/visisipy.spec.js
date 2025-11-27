@@ -8,7 +8,7 @@ test.describe("Visisipy Demo", () => {
 
     // Accept the Terms of Use dialog if it appears
     const agreeButton = page.getByRole("button", { name: "I Agree" });
-    if (await agreeButton.isVisible()) {
+    if ((await agreeButton.count()) > 0 && (await agreeButton.isVisible())) {
       await agreeButton.click();
     }
   });
@@ -30,18 +30,15 @@ test.describe("Visisipy Demo", () => {
     const iframe = page.locator("iframe");
     await expect(iframe).toBeVisible();
 
-    // Wait for the demo to render (up to 120 seconds)
     // The shinylive app shows "Error starting app!" if it fails
     // We need to check that this error message does NOT appear
     const errorMessage = page.getByText("Error starting app!");
 
-    // Wait up to 120 seconds for the demo to either succeed or fail
-    // If successful, the error message should not be visible
-    // We use a polling approach: wait a bit, then check for error
-    await page.waitForTimeout(5000); // Initial wait for iframe to start loading
+    // Wait for the page to finish loading resources
+    await page.waitForLoadState("networkidle");
 
     // Check that the error message is not visible
-    // We wait up to 120 seconds total, checking periodically
+    // We wait up to 120 seconds total for the demo to render
     await expect(errorMessage).not.toBeVisible({ timeout: 120000 });
   });
 });
