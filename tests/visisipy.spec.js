@@ -29,32 +29,29 @@ test.describe("Visisipy Demo", () => {
     const iframe = page.locator("iframe");
     await expect(iframe).toBeVisible();
 
-    // Wait for the demo to fully load by waiting for UI elements that only appear
-    // when the shinylive app has successfully rendered
-    // The "Model settings" sidebar title appears when the app is loaded
-    const modelSettingsTitle = page.getByText("Model settings");
-
     // Wait for either the demo to load successfully OR an error to appear
-    // Timeout is set high because shinylive apps can take a while to load dependencies
+    // The "Raytrace result" card header appears when the app has fully rendered
+    const raytraceResultTitle = page.getByText("Raytrace result");
+
+    // The shinylive app shows "Error starting app!" if it fails
     const errorMessage = page.getByText("Error starting app!");
 
     // Poll until either success or failure condition is met
-    // This is more reliable than Promise.race as it checks the state at each poll
+    // Using 180 second timeout because shinylive apps can take a while to load dependencies
     await expect(async () => {
       const errorVisible = await errorMessage.isVisible();
       if (errorVisible) {
         throw new Error("Demo failed to load: Error starting app!");
       }
 
-      const settingsVisible = await modelSettingsTitle.isVisible();
-      expect(settingsVisible).toBe(true);
+      const raytraceVisible = await raytraceResultTitle.isVisible();
+      expect(raytraceVisible).toBe(true);
     }).toPass({ timeout: 180000, intervals: [1000, 2000, 5000] });
 
     // Final verification: error message should not be visible
     await expect(errorMessage).not.toBeVisible();
 
     // Verify the demo rendered successfully by checking for key UI elements
-    await expect(page.getByText("Raytrace result")).toBeVisible();
     await expect(page.getByText("Central spherical equivalent")).toBeVisible();
   });
 });
