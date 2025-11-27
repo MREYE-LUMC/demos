@@ -25,16 +25,18 @@ test.describe("Visisipy Demo", () => {
       page.getByRole("heading", { name: "Ocular ray tracing simulations" })
     ).toBeVisible();
 
-    // Wait for the shinylive iframe to be present
-    const iframe = page.locator("iframe");
-    await expect(iframe).toBeVisible();
+    // Wait for the shinylive iframe to be present and get its frame context
+    const iframeLocator = page.locator("iframe");
+    await expect(iframeLocator).toBeVisible();
 
-    // Wait for either the demo to load successfully OR an error to appear
-    // The "Raytrace result" card header appears when the app has fully rendered
-    const raytraceResultTitle = page.getByText("Raytrace result");
+    // Get the frame content - shinylive renders its content inside the iframe
+    const frame = page.frameLocator("iframe");
 
-    // The shinylive app shows "Error starting app!" if it fails
-    const errorMessage = page.getByText("Error starting app!");
+    // The shinylive app shows "Error starting app!" if it fails to load
+    const errorMessage = frame.getByText("Error starting app!");
+
+    // The "Raytrace result" card header appears when the app has fully rendered successfully
+    const raytraceResultTitle = frame.getByText("Raytrace result");
 
     // Poll until either success or failure condition is met
     // Using 180 second timeout because shinylive apps can take a while to load dependencies
@@ -51,7 +53,7 @@ test.describe("Visisipy Demo", () => {
     // Final verification: error message should not be visible
     await expect(errorMessage).not.toBeVisible();
 
-    // Verify the demo rendered successfully by checking for key UI elements
-    await expect(page.getByText("Central spherical equivalent")).toBeVisible();
+    // Verify the demo rendered successfully by checking for key UI elements inside the iframe
+    await expect(frame.getByText("Central spherical equivalent")).toBeVisible();
   });
 });
