@@ -40,20 +40,32 @@ test.describe("Visisipy Demo", () => {
     // This element appears inside the iframe
     const raytraceResultTitle = frame.getByText("Raytrace result");
 
-    // Poll until either success or failure condition is met
-    // Using 180 second timeout because shinylive apps can take a while to load dependencies
-    await expect(async () => {
-      const errorVisible = await errorMessage.isVisible();
-      if (errorVisible) {
-        throw new Error("Demo failed to load: Error starting app!");
-      }
+    // Race between success and error conditions
+    // This ensures we fail fast when an error occurs instead of waiting for timeout
+    const result = await Promise.race([
+      // Success condition: wait for the raytrace result to appear
+      raytraceResultTitle
+        .waitFor({ state: "visible", timeout: 180000 })
+        .then(() => "success")
+        .catch(() => null), // Ignore timeout, let the other promise win
+      // Error condition: wait for the error message to appear
+      errorMessage
+        .waitFor({ state: "visible", timeout: 180000 })
+        .then(() => "error")
+        .catch(() => null), // Ignore timeout, let the other promise win
+    ]);
 
-      const raytraceVisible = await raytraceResultTitle.isVisible();
-      expect(raytraceVisible).toBe(true);
-    }).toPass({ timeout: 180000, intervals: [1000, 2000, 5000] });
+    // If neither condition was met (both timed out), fail the test
+    if (result === null) {
+      throw new Error(
+        "Demo did not load: neither success nor error state detected within timeout"
+      );
+    }
 
-    // Final verification: error message should not be visible
-    await expect(errorMessage).not.toBeVisible();
+    // If error was detected, fail the test immediately with a clear message
+    if (result === "error") {
+      throw new Error("Demo failed to load: Error starting app!");
+    }
 
     // Verify the demo rendered successfully by checking for key UI elements inside the iframe
     await expect(frame.getByText("Central spherical equivalent")).toBeVisible();
