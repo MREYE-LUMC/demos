@@ -1,10 +1,9 @@
-// @ts-check
 import { test, expect } from "@playwright/test";
 
 function setupDemoTest(name: string, location: string, heading: string, renderingFinishedIndicator: string, successIndicators?: string[], successIndicatorTimeout: number = 30000) {
   test.describe(name, () => {
     test.beforeEach(async ({ page }) => {
-      // Navigate to the visisipy demo page
+      // Navigate to the demo page
       await page.goto(location);
 
       // Accept the Terms of Use dialog if it appears
@@ -44,7 +43,7 @@ function setupDemoTest(name: string, location: string, heading: string, renderin
       // Race between success and error conditions
       // This ensures we fail fast when an error occurs instead of waiting for timeout
       const result = await Promise.race([
-        // Success condition: wait for the raytrace result to appear
+        // Success condition: wait for the rendering finished indicator to appear
         renderingFinished
           .waitFor({ state: "visible", timeout: 180000 })
           .then(() => "success")

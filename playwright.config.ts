@@ -1,4 +1,3 @@
-// @ts-check
 import { defineConfig, devices } from "@playwright/test";
 
 // Use environment variable for base URL (deployed site) or fallback to localhost
@@ -8,7 +7,7 @@ const isRemote = baseURL.startsWith("https://");
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
-module.exports = defineConfig({
+export default defineConfig({
   testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -43,10 +42,10 @@ module.exports = defineConfig({
   ...(isRemote
     ? {}
     : {
-        webServer: {
-          command: "python -m http.server 8000 --directory _site",
-          url: "http://localhost:8000",
-          reuseExistingServer: !process.env.CI,
-        },
-      }),
+      webServer: {
+        command: "python -m http.server 8000 --directory _site",
+        url: "http://localhost:8000",
+        reuseExistingServer: !process.env.CI,
+      },
+    }),
 });
