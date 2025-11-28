@@ -1,5 +1,5 @@
 // @ts-check
-const { defineConfig, devices } = require("@playwright/test");
+import { defineConfig, devices } from "@playwright/test";
 
 // Use environment variable for base URL (deployed site) or fallback to localhost
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8000";
