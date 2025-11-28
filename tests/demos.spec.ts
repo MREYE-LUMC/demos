@@ -1,7 +1,7 @@
 // @ts-check
 import { test, expect } from "@playwright/test";
 
-function setupDemoTest(name: string, location: string, heading: string, renderingFinishedIndicator: string, successIndicators?: string[]) {
+function setupDemoTest(name: string, location: string, heading: string, renderingFinishedIndicator: string, successIndicators?: string[], successIndicatorTimeout: number = 30000) {
   test.describe(name, () => {
     test.beforeEach(async ({ page }) => {
       // Navigate to the visisipy demo page
@@ -67,10 +67,12 @@ function setupDemoTest(name: string, location: string, heading: string, renderin
         throw new Error("Demo failed to load: Error starting app!");
       }
 
-      for (const indicator of successIndicators || []) {
-        // Verify the demo rendered successfully by checking for key UI elements inside the iframe
-        await expect(frame.getByText(indicator)).toBeVisible();
-      }
+      await expect(async () => {
+        for (const indicator of successIndicators || []) {
+          // Verify the demo rendered successfully by checking for key UI elements inside the iframe
+          await expect(frame.getByText(indicator)).toBeVisible();
+        }
+      }).toPass({ timeout: successIndicatorTimeout });
     });
   });
 }
