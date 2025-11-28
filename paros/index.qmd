@@ -7,7 +7,7 @@ editable: true
 
 format:
   html:
-    include-after-body: ../_includes/mdr-modal.html
+    include-after-body: [../_includes/mdr-modal.html, ../_includes/resize-iframe.html]
 ---
 
 This integration demonstrates how PAROS can be used to calculate the central magnification of a fundus image. More information can be found at our [GitHub repository](https://github.com/MREYE-LUMC/PAROS).
@@ -29,10 +29,10 @@ If you do not have all required parameters, it is possible to estimate some para
 - The posterior lens curvature can be fitted from the spherical equivalent of refraction.
     To do this, click the **Fit posterior lens curvature** button.
 
-:::{.column-screen-inset}
+:::{.column-screen}
 ```{shinylive-python}
 #| standalone: true
-#| viewerHeight: 1000
+#| viewerHeight: 400
 ## file: app.py
 from shiny import reactive
 from shiny.express import input, render, ui

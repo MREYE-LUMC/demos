@@ -7,7 +7,7 @@ editable: true
 
 format:
   html:
-    include-after-body: ../_includes/mdr-modal.html
+    include-after-body: [../_includes/mdr-modal.html, ../_includes/resize-iframe.html]
 ---
 
 This is a demonstration of [visisipy](https://visisipy.readthedocs.io), our Python library for visual optics simulations.
@@ -21,10 +21,10 @@ This is a demonstration of [visisipy](https://visisipy.readthedocs.io), our Pyth
 Loading may take a while due to the installation of visisipy's dependencies.
 :::
 
-:::{.column-screen-inset}
+:::{.column-screen}
 ```{shinylive-python}
 #| standalone: true
-#| viewerHeight: 1100
+#| viewerHeight: 400
 ## file: app.py
 import visisipy
 import faicons
