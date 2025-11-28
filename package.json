@@ -1,0 +1,16 @@
+{
+  "name": "demos",
+  "version": "1.0.0",
+  "description": "Interactive demos for research projects of the MReye group.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^24.10.1"
+  }
+}

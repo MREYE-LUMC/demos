@@ -1,0 +1,65 @@
+name: Playwright Tests
+
+on:
+  # Allow manual trigger
+  workflow_dispatch:
+  # Run on pull requests
+  pull_request:
+    branches:
+      - main
+
+  # Run on push to main
+  push:
+    branches:
+      - main
+
+  # Run daily at 07:00 UTC to catch regressions, e.g. due to dependency updates
+  schedule:
+    - cron: "0 7 * * *" # Every day at 07:00 UTC
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Build website
+        run: uv run quarto render --output-dir _site
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npm test
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
