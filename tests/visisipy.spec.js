@@ -33,9 +33,11 @@ test.describe("Visisipy Demo", () => {
     const frame = page.frameLocator("iframe");
 
     // The shinylive app shows "Error starting app!" if it fails to load
-    const errorMessage = frame.getByText("Error starting app!");
+    // Note: The error message appears on the main page, not inside the iframe
+    const errorMessage = page.getByText("Error starting app!");
 
     // The "Raytrace result" card header appears when the app has fully rendered successfully
+    // This element appears inside the iframe
     const raytraceResultTitle = frame.getByText("Raytrace result");
 
     // Poll until either success or failure condition is met
