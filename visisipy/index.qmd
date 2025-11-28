@@ -31,7 +31,7 @@ import faicons
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-smurf
+
 from itertools import cycle
 from matplotlib.colors import TABLEAU_COLORS, LogNorm
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
