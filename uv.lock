@@ -1384,7 +1384,7 @@ wheels = [
 
 [[package]]
 name = "optiland"
-version = "0.5.7"
+version = "0.5.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -1399,9 +1399,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "vtk" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ed/69/390199b439f49f36381e7427e2285e07042e06c86142b5fb8b8f3eb37394/optiland-0.5.7.tar.gz", hash = "sha256:d06ab7cadfb5f2e5a5bd7d6c4b76c8dcbd26db56dc3a9f65a7d3b7e9b41d96e7", size = 36924834, upload-time = "2025-10-15T14:27:36.101Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/99/1d/ec5006640f3f9e93cfbdcc26588b2b5e4fbf21f626be146d2267e5c4e063/optiland-0.5.8.tar.gz", hash = "sha256:c7c64cac3c41dac67bad760dd4cc2de6049a89f9a4bd3b1e25e33764ef199b84", size = 37421713, upload-time = "2025-11-22T13:24:11.643Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cf/2b/6f965f9ea9391e3c8689cf25227a372a8a9e4dc23d472e717a6c07c3ea51/optiland-0.5.7-py3-none-any.whl", hash = "sha256:78505c2af272fd36f05e52cc573be8138734f5af7f4d4906875ab4d91b40e604", size = 13605774, upload-time = "2025-10-15T14:27:33.088Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/66/845cf3177da36ff9748846b83020a3358bfb169bc79a386fc3ba0ad3347a/optiland-0.5.8-py3-none-any.whl", hash = "sha256:c4cc967f2ea555fffaf3de4d33f86097681e2865a8f28c3a388ab38534533153", size = 13638214, upload-time = "2025-11-22T13:24:08.452Z" },
 ]
 
 [[package]]
@@ -2391,7 +2391,7 @@ wheels = [
 
 [[package]]
 name = "visisipy"
-version = "0.2.0"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -2401,9 +2401,9 @@ dependencies = [
     { name = "scipy" },
     { name = "zospy", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c6/cc/ce9e499efa7a6e3fe1bff304827113777f3610698d009ea0e40c48f99db9/visisipy-0.2.0.tar.gz", hash = "sha256:47c08335add09a3cffdd784d3aa385f375b8b1e65bb1184aa382fadba106bd45", size = 2770410, upload-time = "2025-10-21T09:40:58.506Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/f4/829f2552529a434cbe4bbef0d0ae1a211f29c4b978af46ad154f323d95b0/visisipy-0.3.0.tar.gz", hash = "sha256:a00634a09462cfea1d41dfaa6a879ab8ba1609b36b0c5577e3f125bd80258f8a", size = 2130608, upload-time = "2025-11-26T20:17:00.786Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3b/42/9fcc78a8f3806d874abc914041d94080e35687e145487c28ae04f0a65bac/visisipy-0.2.0-py3-none-any.whl", hash = "sha256:2bb91580f73ec8598e583d697aa806b24dee58cb92d115fa88403ee9126752f1", size = 81457, upload-time = "2025-10-21T09:40:57.104Z" },
+    { url = "https://files.pythonhosted.org/packages/e5/d6/07367d713fbecb484aa46555f3b1e4d786c3ffd302dc0558f3977b42d18e/visisipy-0.3.0-py3-none-any.whl", hash = "sha256:3e7c092879e0a6d6f9e18fa891b4f896bd88ab48c21ec913809d73ae513c6df3", size = 86141, upload-time = "2025-11-26T20:16:59.787Z" },
 ]
 
 [[package]]
