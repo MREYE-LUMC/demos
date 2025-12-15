@@ -1191,6 +1191,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "lzstring" },
+    { name = "optiland" },
     { name = "python-frontmatter" },
     { name = "quarto-cli" },
     { name = "shinylive" },
@@ -1200,10 +1201,11 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "lzstring", specifier = ">=1.0.4" },
+    { name = "optiland", specifier = "==0.5.8" },
     { name = "python-frontmatter", specifier = ">=1.1.0" },
     { name = "quarto-cli", specifier = ">=1.8.25" },
     { name = "shinylive", specifier = ">=0.8.3" },
-    { name = "visisipy", specifier = ">=0.1.0" },
+    { name = "visisipy", specifier = "==0.3.0" },
 ]
 
 [[package]]
@@ -2179,7 +2181,7 @@ wheels = [
 
 [[package]]
 name = "shinylive"
-version = "0.8.4"
+version = "0.8.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
@@ -2190,9 +2192,9 @@ dependencies = [
     { name = "shiny" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7f/2f/c75077b2dca02339098f799d55ae21a1d87ffe98893df95d6108c2c1c52c/shinylive-0.8.4.tar.gz", hash = "sha256:cc95333f417cbb45c647de176afd1a135bc7df36269db0489f4c8e59ac292501", size = 27395, upload-time = "2025-09-12T14:33:00.633Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1c/b4/a741e01b756d76bf5839d47c54562563353fd5c5849e0cbb8b5b8ea23d8b/shinylive-0.8.5.tar.gz", hash = "sha256:d485efa14a4053be0e6ec19a21a49e5d0b6bd8b99cd2f5cb81b0b04f57a1c249", size = 29519, upload-time = "2025-12-08T21:08:27.076Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6d/ff/ff305d32723b5ec80638b7d27dde578313951ec8489e7f3af5ff98c2b449/shinylive-0.8.4-py3-none-any.whl", hash = "sha256:cfa063f9c7e20379d54a932ee194de92b89692dede7076631d8e70b6b81319a0", size = 29396, upload-time = "2025-09-12T14:32:59.669Z" },
+    { url = "https://files.pythonhosted.org/packages/e5/bb/8dc375e7fb90737fe64a3aa150441a667225672d5d4b735880e4a41f1686/shinylive-0.8.5-py3-none-any.whl", hash = "sha256:85ac83b5b86adf181f79937a50c997315d30cd944a565a31d1a99abc8d715dcd", size = 29432, upload-time = "2025-12-08T21:08:25.868Z" },
 ]
 
 [[package]]
