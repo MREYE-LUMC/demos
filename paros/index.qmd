@@ -227,8 +227,8 @@ with ui.card():
         _, Camera, PhakicIOL, calculate_magnification = import_paros()
         eye = eye_model()
 
-        camera_f_cond = 0.026347
-        camera_a1 = -0.010541
+        camera_f_cond = 0.02657
+        camera_a1 = 0.03481
 
         camera = Camera(F_cond=camera_f_cond, a1=camera_a1)
 
