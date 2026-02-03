@@ -109,8 +109,8 @@ with ui.card():
         "See our publication for an explanation of the camera-specific parameters. "
         "Parameters used in this demo:  \n"
         "<table>"
-        "<tr><td><strong>Condenser lens power</strong></td><td>38 D</td></tr>"
-        "<tr><td><strong>First order correction term</strong></td><td>-0.01</td></tr>"
+        "<tr><td><strong>Condenser lens power</strong></td><td>37.6 D</td></tr>"
+        "<tr><td><strong>First order correction term</strong></td><td>0.035</td></tr>"
         "</table>"
     )
 
