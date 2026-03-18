@@ -9,12 +9,19 @@
   "automergeStrategy": "squash",
   "packageRules": [
     {
-      "groupName": "Python version",
+      "groupName": "Requires Python",
       "matchFileNames": [
-        "pyproject.toml"
+        "**/pyproject.toml"
       ],
       "matchDepTypes": [
         "requires-python"
+      ],
+      "enabled": false
+    },
+    {
+      "groupName": "Python version",
+      "matchFileNames": [
+        ".python-version"
       ],
       "enabled": false
     },
