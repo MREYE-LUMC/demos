@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": ["dependencies"],
+  "automergeStrategy": "squash",
+  "packageRules": [
+    {
+      "groupName": "non-major dependencies",
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin"
+      ],
+      "automerge": true
+    }
+  ]
+}
