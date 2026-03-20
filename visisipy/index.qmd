@@ -252,6 +252,13 @@ def server(input: Inputs, output: Outputs, session: Session):
             selected=[str(i) for i in sorted(fields)],
         )
 
+    def update_backend_settings():
+        visisipy.update_settings(
+            fields=[(0, y) for y in fields()],
+            wavelengths=[input.wavelength()],
+            aperture_value=input.pupil_diameter(),
+        )
+
     @reactive.effect
     @reactive.event(input.add_field, ignore_none=True)
     def add_field():
@@ -283,12 +290,8 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @reactive.effect
     @reactive.calc
-    def update_backend_settings():
-        visisipy.update_settings(
-            fields=[(0, y) for y in fields()],
-            wavelengths=[input.wavelength()],
-            aperture_value=input.pupil_diameter(),
-        )
+    def update_backend_settings_effect():
+        update_backend_settings()
 
     @reactive.effect
     @reactive.event(input.restore_defaults)
@@ -352,14 +355,12 @@ def server(input: Inputs, output: Outputs, session: Session):
             value=default_parameters["pupil_diameter"],
         )
 
-        visisipy.update_settings(
-            fields=[(0, y) for y in fields()],
-            wavelengths=[input.wavelength()],
-            aperture_value=input.pupil_diameter(),
-        )
+        update_backend_settings()
 
     @reactive.calc
     def eye_model() -> visisipy.EyeModel:
+        update_backend_settings()
+
         geometry = visisipy.create_geometry(
             axial_length=input.axial_length(),
             cornea_front_radius=input.cornea_front_radius(),
