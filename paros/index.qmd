@@ -109,8 +109,8 @@ with ui.card():
         "See our publication for an explanation of the camera-specific parameters. "
         "Parameters used in this demo:  \n"
         "<table>"
-        "<tr><td><strong>Condenser lens power</strong></td><td>38 D</td></tr>"
-        "<tr><td><strong>First order correction term</strong></td><td>-0.01</td></tr>"
+        "<tr><td><strong>Condenser lens power</strong></td><td>37.6 D</td></tr>"
+        "<tr><td><strong>First order correction term</strong></td><td>0.035</td></tr>"
         "</table>"
     )
 
@@ -227,8 +227,8 @@ with ui.card():
         _, Camera, PhakicIOL, calculate_magnification = import_paros()
         eye = eye_model()
 
-        camera_f_cond = 0.026347
-        camera_a1 = -0.010541
+        camera_f_cond = 0.02657
+        camera_a1 = 0.03481
 
         camera = Camera(F_cond=camera_f_cond, a1=camera_a1)
 
@@ -243,7 +243,7 @@ with ui.card():
 
 
 ## file: requirements.txt
-paros
+paros >= 1.0.1
 sympy
 ```
 :::

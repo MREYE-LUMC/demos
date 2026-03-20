@@ -1,0 +1,38 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "automergeStrategy": "squash",
+  "packageRules": [
+    {
+      "groupName": "Requires Python",
+      "matchFileNames": [
+        "**/pyproject.toml"
+      ],
+      "matchDepTypes": [
+        "requires-python"
+      ],
+      "enabled": false
+    },
+    {
+      "groupName": "Python version",
+      "matchFileNames": [
+        ".python-version"
+      ],
+      "enabled": false
+    },
+    {
+      "groupName": "non-major dependencies",
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin"
+      ],
+      "automerge": true
+    }
+  ]
+}
