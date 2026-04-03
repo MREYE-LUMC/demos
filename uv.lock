@@ -1217,7 +1217,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "lzstring", specifier = ">=1.0.4" },
-    { name = "optiland", specifier = "==0.5.9" },
+    { name = "optiland", specifier = "==0.6.0" },
     { name = "python-frontmatter", specifier = ">=1.1.0" },
     { name = "quarto-cli", specifier = ">=1.8.25" },
     { name = "shinylive", specifier = ">=0.8.3" },
@@ -1402,7 +1402,7 @@ wheels = [
 
 [[package]]
 name = "optiland"
-version = "0.5.9"
+version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -1417,9 +1417,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "vtk" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/73/0f/6d931c98c971daff28c0cd335fc408575ea2fa1a92347ec038cfbeef94b8/optiland-0.5.9.tar.gz", hash = "sha256:d3c8d0a81c954d127c5fd0b0381df398f9a8f412040b62f94ec881adbe0de86c", size = 41157118, upload-time = "2026-02-08T10:34:51.239Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/d9/a4eb5fa79276eaac2c2d90fbdb99a2fbfb71edb5b62e06b054eebbae1b36/optiland-0.6.0.tar.gz", hash = "sha256:3fdbc3f0517d26d4072966dc393ba2c523117caee745a73b13f4c26b529a0e89", size = 45283041, upload-time = "2026-04-03T16:21:14.579Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/aa/f9/6cc839a3f4d2d0a56108371429d06b6b18637b5020530f4f96b44d050bf6/optiland-0.5.9-py3-none-any.whl", hash = "sha256:eb9e50ee9b6b6138f4957cb593c49224662e3a09b43920053bb3c5441e996b5e", size = 13688084, upload-time = "2026-02-08T10:34:47.947Z" },
+    { url = "https://files.pythonhosted.org/packages/50/e1/ba00253844a843f4ba0ca1f36fcf7231f1826e78bee69000c378964ee3d2/optiland-0.6.0-py3-none-any.whl", hash = "sha256:dddc7aa1eff3cc03c88ba8c2d9c4bd4a180ad9ab745d9df533d047e6fb1162eb", size = 14699179, upload-time = "2026-04-03T16:21:10.116Z" },
 ]
 
 [[package]]
