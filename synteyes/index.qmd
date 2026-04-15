@@ -10,9 +10,11 @@ format:
     include-after-body: [../_includes/mdr-modal.html, ../_includes/resize-iframe.html]
 ---
 
-This demo converts the original notebook workflow into a browser app to generate synthetic eyes with retina curvature.
+This demo allows you to create realistic model eyes for scientific purposes.
+The biometric model is based on [SyntEyes by Jos Rozema](https://doi.org/10.1167/iovs.16-20877), a statistical model that generates realistic ocular biometry using a multivariate Gaussian mixture model fitted to clinical population data.
+The retinal shape component is based on the van Dam extension, which adds a realistic retinal curvature model by conditioning the ellipsoidal retinal radii on axial length, based on high resolution MRI data.
 
-Set the number of eyes and click **Generate SyntEyes**.
+Set the number of eyes and click **Generate 3D SyntEyes**.
 
 :::{.column-screen}
 ```{shinylive-python}
