@@ -33,7 +33,24 @@ import modeldata
 
 
 def conditional_sgm(mu, cov, known_indices, known_values):
-    """Calculate conditional distribution of a single Gaussian model."""
+    """Compute the conditional Gaussian distribution.
+
+    Parameters
+    ----------
+    mu : np.ndarray
+        Mean vector of the full Gaussian.
+    cov : np.ndarray
+        Covariance matrix of the full Gaussian.
+    known_indices : list[int]
+        Indices of variables conditioned on.
+    known_values : np.ndarray | float
+        Observed values for the variables in ``known_indices``.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        Conditional mean vector and conditional covariance matrix.
+    """
     unknown_indices = [i for i in range(len(mu)) if i not in known_indices]
 
     mu_known = mu[known_indices]
@@ -58,7 +75,18 @@ def conditional_sgm(mu, cov, known_indices, known_values):
 
 
 def zernike_index(order):
-    """Create array with n,m coefficients for a Zernike polynomial order."""
+    """Create Zernike polynomial (n, m) index pairs.
+
+    Parameters
+    ----------
+    order : int
+        Maximum radial Zernike order.
+
+    Returns
+    -------
+    np.ndarray
+        Array of shape ``(k, 2)`` containing ``(n, m)`` pairs.
+    """
     idx = np.array([])
     for n in range(0, order + 1):
         for m in range(-1 * n, n + 1, 2):
@@ -69,7 +97,24 @@ def zernike_index(order):
 
 
 def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
-    """Convert eigencornea-domain values to one SyntEyes row."""
+    """Convert one eigencornea sample to SyntEyes format.
+
+    Parameters
+    ----------
+    eigencornea : np.ndarray
+        One eigencornea sample containing biometric latent variables.
+    conv_ec : np.ndarray
+        Conversion matrix from eigencornea coefficients to corneal terms.
+    avg_ec : np.ndarray
+        Mean corneal terms added after conversion.
+    lens_za : np.ndarray
+        Lens Zernike coefficients.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Single-row dataframe with SyntEyes fields.
+    """
     zerniken = (
         0.001
         * np.reshape(eigencornea[range(6, 18, 1)], (1, len(range(6, 18, 1))))
@@ -148,7 +193,22 @@ def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
 
 
 def create_retina_curvature(synteyes_orig, mu_retina, cov_retina):
-    """Add retina curvature values based on axial length."""
+    """Add retinal curvature values conditioned on axial length.
+
+    Parameters
+    ----------
+    synteyes_orig : pandas.DataFrame
+        Generated SyntEyes dataframe without retinal curvature columns.
+    mu_retina : np.ndarray
+        Mean vector for the retina model.
+    cov_retina : np.ndarray
+        Covariance matrix for the retina model.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Input dataframe with ``ell_rx``, ``ell_ry``, and ``ell_rz`` added.
+    """
     axial_lengths = np.array(synteyes_orig["AxialLength"] - synteyes_orig["RT"])
 
     cond_sgm = np.array([])
@@ -174,14 +234,48 @@ def create_retina_curvature(synteyes_orig, mu_retina, cov_retina):
 
 
 def create_mgmm_data(mu_c0, mu_c1, cov_c0, cov_c1, w_c0, w_c1, n):
-    """Create n data points from the weighted two-component Gaussian model."""
+    """Sample from a weighted two-component Gaussian mixture model.
+
+    Parameters
+    ----------
+    mu_c0 : np.ndarray
+        Mean vector of component 0.
+    mu_c1 : np.ndarray
+        Mean vector of component 1.
+    cov_c0 : np.ndarray
+        Covariance matrix of component 0.
+    cov_c1 : np.ndarray
+        Covariance matrix of component 1.
+    w_c0 : float
+        Weight for component 0 sample.
+    w_c1 : float
+        Weight for component 1 sample.
+    n : int
+        Number of samples to generate.
+
+    Returns
+    -------
+    np.ndarray
+        Generated samples in latent eigencornea space.
+    """
     comp0 = stats.multivariate_normal.rvs(mu_c0, cov_c0, size=n)
     comp1 = stats.multivariate_normal.rvs(mu_c1, cov_c1, size=n)
     return w_c0 * comp0 + w_c1 * comp1
 
 
 def nearest_psd(matrix):
-    """Find a nearest positive semi-definite matrix."""
+    """Project a matrix to a positive semi-definite approximation.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        Input square matrix.
+
+    Returns
+    -------
+    np.ndarray
+        Matrix with eigenvalues clipped to a small positive threshold.
+    """
     eigval, eigvec = np.linalg.eig(matrix)
     return eigvec @ np.diag(np.maximum(eigval, 10 ** -6)) @ eigvec.T
 
