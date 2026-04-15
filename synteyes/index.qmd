@@ -230,7 +230,7 @@ ui.tags.style("table { display: block; overflow-x: auto; }", "th, td { white-spa
 with ui.card():
     ui.card_header("Create n SyntEyes")
     with ui.layout_columns():
-        ui.input_numeric("n_eyes", "Number of SyntEyes", value=10, min=1, step=1)
+        ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
         ui.input_checkbox("compact_view", "Compact column view", value=True)
 
@@ -272,9 +272,6 @@ def displayed_data():
         "LT",
         "AxialLength",
         "VD",
-        "RT",
-        "Rla",
-        "Rlp",
         "ell_rx",
         "ell_ry",
         "ell_rz",
