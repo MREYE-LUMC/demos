@@ -42,7 +42,7 @@ Ray tracing simulations on the human eye, right in your browser!
 :::
 
 ::: {.card-body .d-flex .flex-column}
-Generate synthethic eye models, right in your browser!
+Generate synthethic eye models, for your simulations.
 
 ::: {.mt-auto}
 [Go to demo](synteyes/index.qmd){.btn .btn-outline-primary .btn .mt-auto role="button"}
