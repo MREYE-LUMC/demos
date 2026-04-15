@@ -29,6 +29,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats as stats
 import json
+from pathlib import Path
 
 from shiny import reactive
 from shiny.express import input, render, ui
@@ -298,7 +299,11 @@ def generate_synteyes(n):
 
 
 # Original Synteyes parameters
-with open("modeldata.json", "r", encoding="utf-8") as f:
+modeldata_path = Path(__file__).resolve().with_name("modeldata.json")
+if not modeldata_path.exists():
+    modeldata_path = Path("modeldata.json")
+
+with modeldata_path.open("r", encoding="utf-8") as f:
     modeldata = json.load(f)
 
 conv_ec_orig = np.array(modeldata["conv_ec_orig"])
