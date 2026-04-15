@@ -11,7 +11,7 @@ format:
 ---
 
 This demo allows you to create realistic model eyes for scientific purposes.
-The biometric model is based on [SyntEyes by Jos Rozema](https://doi.org/10.1167/iovs.16-20877), a statistical model that generates realistic ocular biometry using a multivariate Gaussian mixture model fitted to clinical population data.
+The biometric model is based on [SyntEyes by Jos Rozema](https://doi.org/10.1167/iovs.15-18067 ), a statistical model that generates realistic ocular biometry using a multivariate Gaussian mixture model fitted to clinical population data.
 
 The retinal shape component is based on the van Dam extension, which adds a realistic retinal curvature model, based on the axial length and high resolution MRI data of the healthy population.
 
