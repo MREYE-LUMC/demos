@@ -17,6 +17,9 @@ The retinal shape component is based on the van Dam extension, which adds a real
 
 Set the number of eyes and click **Generate 3D SyntEyes**.
 
+<!-- Note: the edit.html file is generated automatically. -->
+[Edit the demo](edit.html){.btn .btn-outline-primary .btn role="button" .external}
+
 :::{.column-screen}
 ```{shinylive-python}
 #| standalone: true
