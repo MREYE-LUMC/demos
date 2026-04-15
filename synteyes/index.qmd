@@ -234,9 +234,21 @@ with ui.card():
         ui.input_action_button("generate", "Generate SyntEyes")
         ui.input_checkbox("compact_view", "Compact column view", value=True)
 
-        @render.download(filename="synteyes.csv")
-        def download_csv():
-            yield generated_data().to_csv(index=False)
+        @render.ui
+        def download_button():
+            if input.generate() == 0:
+                return ui.tags.button(
+                    "Download CSV", disabled=True, class_="btn btn-default"
+                )
+            import base64 as _b64
+            csv_bytes = generated_data().to_csv(index=False).encode()
+            b64 = _b64.b64encode(csv_bytes).decode()
+            return ui.tags.a(
+                "Download CSV",
+                href=f"data:text/csv;base64,{b64}",
+                download="synteyes.csv",
+                class_="btn btn-default",
+            )
 
 
 @reactive.calc
