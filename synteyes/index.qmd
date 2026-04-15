@@ -23,7 +23,6 @@ import numpy as np
 import pandas as pd
 import scipy.stats as stats
 
-from shiny import ui as core_ui
 from shiny import reactive
 from shiny.express import input, render, ui
 
@@ -231,7 +230,10 @@ with ui.card():
         ui.input_numeric("n_eyes", "Number of SyntEyes", value=10, min=1, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
         ui.input_checkbox("compact_view", "Compact column view", value=True)
-        core_ui.download_button("download_csv", "Download CSV")
+
+        @render.download(filename="synteyes.csv")
+        def download_csv():
+            yield generated_data().to_csv(index=False)
 
 
 @reactive.calc
@@ -282,10 +284,6 @@ with ui.card():
     @render.table
     def result_table():
         return displayed_data().head(20)
-
-    @render.download(filename="synteyes.csv")
-    def download_csv():
-        yield generated_data().to_csv(index=False)
 
 
 ## file: modeldata.py
