@@ -68,7 +68,7 @@ def zernike_index(order):
     return idx
 
 
-def convert_to_single_jos_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
+def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
     """Convert eigencornea-domain values to one SyntEyes row."""
     zerniken = (
         0.001
@@ -147,9 +147,9 @@ def convert_to_single_jos_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
     return pd.DataFrame.from_dict(synteyes)
 
 
-def create_retina_curvature(synteyes_jos, mu_retina, cov_retina):
+def create_retina_curvature(synteyes_orig, mu_retina, cov_retina):
     """Add retina curvature values based on axial length."""
-    axial_lengths = np.array(synteyes_jos["AxialLength"] - synteyes_jos["RT"])
+    axial_lengths = np.array(synteyes_orig["AxialLength"] - synteyes_orig["RT"])
 
     cond_sgm = np.array([])
     for al in axial_lengths:
@@ -167,10 +167,10 @@ def create_retina_curvature(synteyes_jos, mu_retina, cov_retina):
     n_rows = len(axial_lengths)
     cond_sgm = np.reshape(cond_sgm, (n_rows, 3))
 
-    synteyes_jos["ell_rx"] = cond_sgm[:, 0]
-    synteyes_jos["ell_ry"] = cond_sgm[:, 1]
-    synteyes_jos["ell_rz"] = cond_sgm[:, 2]
-    return synteyes_jos
+    synteyes_orig["ell_rx"] = cond_sgm[:, 0]
+    synteyes_orig["ell_ry"] = cond_sgm[:, 1]
+    synteyes_orig["ell_rz"] = cond_sgm[:, 2]
+    return synteyes_orig
 
 
 def create_mgmm_data(mu_c0, mu_c1, cov_c0, cov_c1, w_c0, w_c1, n):
@@ -188,33 +188,33 @@ def nearest_psd(matrix):
 
 def generate_synteyes(n):
     eigen_data = create_mgmm_data(
-        mu_jos[0], mu_jos[1], cov_jos0, cov_jos1, weights_jos[0], weights_jos[1], n
+        mu_orig[0], mu_orig[1], cov_orig0, cov_orig1, weights_orig[0], weights_orig[1], n
     )
 
-    synteyes_jos = pd.DataFrame([])
+    synteyes_orig = pd.DataFrame([])
     for i in range(len(eigen_data)):
-        synteyes_jos_single = convert_to_single_jos_synteyes(
-            eigen_data[i], conv_ec_jos, avg_ec_jos, lens_za_jos
+        synteyes_orig_single = convert_to_single_orig_synteyes(
+            eigen_data[i], conv_ec_orig, avg_ec_orig, lens_za_orig
         )
-        synteyes_jos = pd.concat([synteyes_jos, synteyes_jos_single], ignore_index=True)
+        synteyes_orig = pd.concat([synteyes_orig, synteyes_orig_single], ignore_index=True)
 
-    return create_retina_curvature(synteyes_jos, MU_AL_RADII, COV_AL_RADII)
+    return create_retina_curvature(synteyes_orig, MU_AL_RADII, COV_AL_RADII)
 
 
-# Jos Rozema variables
-conv_ec_jos = modeldata.conv_ec_jos
-avg_ec_jos = modeldata.avg_ec_jos
-lens_za_jos = modeldata.lens_za_jos
-weights_jos = modeldata.weights_jos
-mu_jos = modeldata.mu_jos
-cov_jos0 = modeldata.cov_jos0
-cov_jos1 = modeldata.cov_jos1
+# Original Synteyes parameters
+conv_ec_orig = modeldata.conv_ec_orig
+avg_ec_orig = modeldata.avg_ec_orig
+lens_za_orig = modeldata.lens_za_orig
+weights_orig = modeldata.weights_orig
+mu_orig = modeldata.mu_orig
+cov_orig0 = modeldata.cov_orig0
+cov_orig1 = modeldata.cov_orig1
 
-cov_jos = np.zeros((2, np.shape(cov_jos0)[0], np.shape(cov_jos0)[1]))
-cov_jos[0] = nearest_psd(cov_jos0)
-cov_jos[1] = cov_jos1
+cov_orig = np.zeros((2, np.shape(cov_orig0)[0], np.shape(cov_orig0)[1]))
+cov_orig[0] = nearest_psd(cov_orig0)
+cov_orig[1] = cov_orig1
 
-# Retina model constants
+# Retina model parameters
 MU_AL_RADII = np.array([23.85, 11.89, 11.66, 10.55])
 COV_AL_RADII = np.array(
     [
@@ -301,7 +301,7 @@ with ui.card():
 ## file: modeldata.py
 import numpy as np
 
-conv_ec_jos = np.array(
+conv_ec_orig = np.array(
     [
         [
             0.03153953,
@@ -1580,7 +1580,7 @@ conv_ec_jos = np.array(
     ]
 )
 
-avg_ec_jos = np.array(
+avg_ec_orig = np.array(
     [
         [
             0.348793787,
@@ -1678,7 +1678,7 @@ avg_ec_jos = np.array(
     ]
 )
 
-lens_za_jos = np.array(
+lens_za_orig = np.array(
     [
         0.0,
         0.0,
@@ -1704,9 +1704,9 @@ lens_za_jos = np.array(
     ]
 )
 
-weights_jos = np.array([0.539894824, 0.460105176])
+weights_orig = np.array([0.539894824, 0.460105176])
 
-mu_jos = np.array(
+mu_orig = np.array(
     [
         [
             2.9455229455439,
@@ -1752,7 +1752,7 @@ mu_jos = np.array(
 )
 
 
-cov_jos0 = np.array(
+cov_orig0 = np.array(
     [
         [
             1.435277186552970097e-01,
@@ -2118,7 +2118,7 @@ cov_jos0 = np.array(
 )
 
 
-cov_jos1 = np.array(
+cov_orig1 = np.array(
     [
         [
             1.500440939358189951e-01,
