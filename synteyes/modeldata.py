@@ -1,6 +1,7 @@
 import numpy as np
+# model parameters of the synteyes from Rozema et al. DOI: 10.1167/iovs.15-18067 
 
-conv_ec_jos = np.array(
+conv_ec_orig = np.array(
     [
         [
             0.03153953,
@@ -1279,7 +1280,7 @@ conv_ec_jos = np.array(
     ]
 )
 
-avg_ec_jos = np.array(
+avg_ec_orig = np.array(
     [
         [
             0.348793787,
@@ -1377,7 +1378,7 @@ avg_ec_jos = np.array(
     ]
 )
 
-lens_za_jos = np.array(
+lens_za_orig = np.array(
     [
         0.0,
         0.0,
@@ -1403,9 +1404,9 @@ lens_za_jos = np.array(
     ]
 )
 
-weights_jos = np.array([0.539894824, 0.460105176])
+weights_orig = np.array([0.539894824, 0.460105176])
 
-mu_jos = np.array(
+mu_orig = np.array(
     [
         [
             2.9455229455439,
@@ -1451,7 +1452,7 @@ mu_jos = np.array(
 )
 
 
-cov_jos0 = np.array(
+cov_orig0 = np.array(
     [
         [
             1.435277186552970097e-01,
@@ -1817,7 +1818,7 @@ cov_jos0 = np.array(
 )
 
 
-cov_jos1 = np.array(
+cov_orig1 = np.array(
     [
         [
             1.500440939358189951e-01,
