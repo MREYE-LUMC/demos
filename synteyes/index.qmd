@@ -398,48 +398,40 @@ with ui.card():
         ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
 
-        def show_error_message():
-            ui.show_toast(ui.toast(header="Tralala", type="error"))
+        def conditional_download_button(button):
+            fallback = ui.input_action_button(
+                button.output_id + "_fallback", label=button.label, disabled=True
+            )
 
-        @render.ui
-        def download_csv_button():
-            @render.download(filename="synteyes.csv", label="Download CSV")
-            def download_csv():
-                yield generated_data().to_csv(index=False)
+            def inner():
+                if input.generate() == 0 or input.n_eyes() == 0:
+                    return fallback
 
-            if input.generate() == 0:
-                return ui.input_action_button(
-                    "download_csv", label="Download CSV", disabled=True
+                return button
+
+            inner.__name__ = button.output_id + "_wrapper"
+
+            return render.ui(inner)
+
+        @conditional_download_button
+        @render.download(filename="synteyes.csv", label="Download CSV")
+        def download_csv():
+            yield generated_data().to_csv(index=False)
+
+        @conditional_download_button
+        @render.download(filename="synteyes.json", label="Download JSON")
+        def download_json():
+            def _json_default(obj):
+                if isinstance(obj, np.generic):
+                    return obj.item()
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                raise TypeError(
+                    f"Object of type {type(obj).__name__} is not JSON serializable"
                 )
 
-            return download_csv
-
-        @render.ui
-        def download_json_button():
-            @render.download(filename="synteyes.json", label="Download JSON")
-            def download_json():
-                if input.generate() == 0:
-                    show_error_message()
-                    return
-
-                def _json_default(obj):
-                    if isinstance(obj, np.generic):
-                        return obj.item()
-                    if isinstance(obj, np.ndarray):
-                        return obj.tolist()
-                    raise TypeError(
-                        f"Object of type {type(obj).__name__} is not JSON serializable"
-                    )
-
-                records = generated_data().to_dict(orient="records")
-                yield json.dumps(records, separators=(",", ":"), default=_json_default)
-
-            if input.generate() == 0:
-                return ui.input_action_button(
-                    "download_json", label="Download JSON", disabled=True
-                )
-
-            return download_json
+            records = generated_data().to_dict(orient="records")
+            yield json.dumps(records, separators=(",", ":"), default=_json_default)
 
 
 @reactive.calc
@@ -462,7 +454,14 @@ def generated_retina_curvature():
         mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1
     )
     return pd.DataFrame(
-        [{"AxialLength": al, "ret_rx": float(rx), "ret_ry": float(ry), "ret_rz": float(rz)}]
+        [
+            {
+                "AxialLength": al,
+                "ret_rx": float(rx),
+                "ret_ry": float(ry),
+                "ret_rz": float(rz),
+            }
+        ]
     )
 
 
@@ -503,7 +502,7 @@ with ui.card():
             return ui.markdown(
                 "Enter the amount of eyes and click **Generate SyntEyes**."
             )
-            
+
         df = generated_data()
         shown_df = displayed_data()
         mode_label = "compact" if input.compact_view() else "expanded"
@@ -536,7 +535,9 @@ with ui.card():
             return generated_retina_curvature().round(2)
 
         if input.generate_retina() == 0:
-            return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
+            return ui.markdown(
+                "Enter an axial length and click **Generate Retina Radii**."
+            )
 
         return retina_result_table
 
