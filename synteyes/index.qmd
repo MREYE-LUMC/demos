@@ -299,12 +299,8 @@ def generate_synteyes(n):
 
 
 # Original Synteyes parameters
-modeldata_path = Path(__file__).resolve().with_name("modeldata.json")
-if not modeldata_path.exists():
-    modeldata_path = Path("modeldata.json")
-
-with modeldata_path.open("r", encoding="utf-8") as f:
-    modeldata = json.load(f)
+modeldata_path = Path(__file__).parent / "modeldata.json"
+modeldata = json.loads(modeldata_path.read_text(encoding="utf-8"))
 
 conv_ec_orig = np.array(modeldata["conv_ec_orig"])
 avg_ec_orig = np.array(modeldata["avg_ec_orig"])
