@@ -392,46 +392,28 @@ with ui.card():
         ui.input_action_button("generate", "Generate SyntEyes")
         ui.input_checkbox("compact_view", "Compact column view", value=True)
 
-        @render.ui
-        def download_button():
-            if input.generate() == 0:
-                return ui.tags.button(
-                    "Download CSV", disabled=True, class_="btn btn-default"
-                )
-            import base64 as _b64
-            csv_bytes = generated_data().to_csv(index=False).encode()
-            b64 = _b64.b64encode(csv_bytes).decode()
-            return ui.tags.a(
-                "Download CSV",
-                href=f"data:text/csv;base64,{b64}",
-                download="synteyes.csv",
-                class_="btn btn-default",
-            )
+        with ui.panel_conditional("input.generate == 0"):
+            ui.tags.button("Download CSV", disabled=True, class_="btn btn-default")
+            ui.tags.button("Download JSON", disabled=True, class_="btn btn-default")
 
-        @render.ui
-        def download_json_button():
-            if input.generate() == 0:
-                return ui.tags.button(
-                    "Download JSON", disabled=True, class_="btn btn-default"
-                )
+        with ui.panel_conditional("input.generate > 0"):
+            @render.download(filename="synteyes.csv", label="Download CSV")
+            def download_csv():
+                yield generated_data().to_csv(index=False)
 
-            def _json_default(obj):
-                if isinstance(obj, np.generic):
-                    return obj.item()
-                if isinstance(obj, np.ndarray):
-                    return obj.tolist()
-                raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+            @render.download(filename="synteyes.json", label="Download JSON")
+            def download_json():
+                def _json_default(obj):
+                    if isinstance(obj, np.generic):
+                        return obj.item()
+                    if isinstance(obj, np.ndarray):
+                        return obj.tolist()
+                    raise TypeError(
+                        f"Object of type {type(obj).__name__} is not JSON serializable"
+                    )
 
-            import base64 as _b64
-            records = generated_data().to_dict(orient="records")
-            json_text = json.dumps(records, separators=(",", ":"), default=_json_default)
-            json_b64 = _b64.b64encode(json_text.encode()).decode()
-            return ui.tags.a(
-                "Download JSON",
-                href=f"data:application/json;base64,{json_b64}",
-                download="synteyes.json",
-                class_="btn btn-default",
-            )
+                records = generated_data().to_dict(orient="records")
+                yield json.dumps(records, separators=(",", ":"), default=_json_default)
 
 
 @reactive.calc
