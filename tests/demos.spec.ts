@@ -91,3 +91,11 @@ setupDemoTest(
   "Raytrace result",
   ["Central spherical equivalent"]
 );
+
+setupDemoTest(
+  "SyntEyes 3D Demo",
+  "/synteyes/index.html",
+  "Create 3D SyntEyes",
+  "Create 3D SyntEyes",
+  ["Enter the amount of eyes and click Generate SyntEyes."]
+);
