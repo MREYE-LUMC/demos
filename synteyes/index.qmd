@@ -403,15 +403,15 @@ with ui.card():
                 button.output_id + "_fallback", label=button.label, disabled=True
             )
 
-            def inner():
+            def wrapper():
                 if input.generate() == 0 or input.n_eyes() == 0:
                     return fallback
 
                 return button
 
-            inner.__name__ = button.output_id + "_wrapper"
+            wrapper.__name__ = button.output_id + "_wrapper"
 
-            return render.ui(inner)
+            return render.ui(wrapper)
 
         @conditional_download_button
         @render.download(filename="synteyes.csv", label="Download CSV")
