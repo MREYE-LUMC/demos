@@ -175,22 +175,15 @@ def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
     ind_lens = zernike_index(6)
     lens_za_array = np.tile(lens_za, (1, 1))
     for idx in range(lens_za_array.shape[1]):
-        synteyes[str("LensZa" + str(idx))] = [
-            (ind_lens[idx, 0], ind_lens[idx, 1], lens_za_array[:, idx][0])
-        ]
-
+        synteyes[str("LensAntZ(" + str(ind_lens[idx,0])+","+str(ind_lens[idx,1])+")")] = [lens_za_array[:, idx][0]]
     ind_cor = zernike_index(8)
     cor_za = np.reshape(synteyes_array[range(6, 51, 1)], (1, len(range(6, 51, 1))))
     for idx in range(cor_za.shape[1]):
-        synteyes[str("CorZa" + str(idx))] = [
-            (ind_cor[idx, 0], ind_cor[idx, 1], cor_za[:, idx][0])
-        ]
-
+        synteyes[str("CorAntZ(" + str(ind_cor[idx,0])+","+str(ind_cor[idx,1])+")")] = [cor_za[:, idx][0]]
     cor_zp = np.reshape(synteyes_array[range(51, 96, 1)], (1, len(range(51, 96, 1))))
     for idx in range(cor_zp.shape[1]):
-        synteyes[str("CorZp" + str(idx))] = [
-            (ind_cor[idx, 0], ind_cor[idx, 1], cor_zp[:, idx][0])
-        ]
+        synteyes[str("CorPostZ(" + str(ind_cor[idx,0])+","+str(ind_cor[idx,1])+")")] = [cor_zp[:, idx][0]]
+
 
     return pd.DataFrame.from_dict(synteyes)
 
