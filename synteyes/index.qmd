@@ -175,14 +175,20 @@ def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
     ind_lens = zernike_index(6)
     lens_za_array = np.tile(lens_za, (1, 1))
     for idx in range(lens_za_array.shape[1]):
-        synteyes[str("LensAntZ(" + str(ind_lens[idx,0])+","+str(ind_lens[idx,1])+")")] = [lens_za_array[:, idx][0]]
+        lens_n = int(ind_lens[idx, 0])
+        lens_m = int(ind_lens[idx, 1])
+        synteyes[f"LensAntZ({lens_n},{lens_m})"] = [lens_za_array[:, idx][0]]
     ind_cor = zernike_index(8)
     cor_za = np.reshape(synteyes_array[range(6, 51, 1)], (1, len(range(6, 51, 1))))
     for idx in range(cor_za.shape[1]):
-        synteyes[str("CorAntZ(" + str(ind_cor[idx,0])+","+str(ind_cor[idx,1])+")")] = [cor_za[:, idx][0]]
+        cor_n = int(ind_cor[idx, 0])
+        cor_m = int(ind_cor[idx, 1])
+        synteyes[f"CorAntZ({cor_n},{cor_m})"] = [cor_za[:, idx][0]]
     cor_zp = np.reshape(synteyes_array[range(51, 96, 1)], (1, len(range(51, 96, 1))))
     for idx in range(cor_zp.shape[1]):
-        synteyes[str("CorPostZ(" + str(ind_cor[idx,0])+","+str(ind_cor[idx,1])+")")] = [cor_zp[:, idx][0]]
+        cor_n = int(ind_cor[idx, 0])
+        cor_m = int(ind_cor[idx, 1])
+        synteyes[f"CorPostZ({cor_n},{cor_m})"] = [cor_zp[:, idx][0]]
 
 
     return pd.DataFrame.from_dict(synteyes)
@@ -203,7 +209,7 @@ def create_retina_curvature(synteyes_orig, mu_retina, cov_retina):
     Returns
     -------
     pandas.DataFrame
-        Input dataframe with ``ell_rx``, ``ell_ry``, and ``ell_rz`` added.
+        Input dataframe with ``ret_rx``, ``ret_ry``, and ``ret_rz`` added.
     """
     axial_lengths = np.array(synteyes_orig["AxialLength"] - synteyes_orig["RT"])
 
@@ -223,9 +229,9 @@ def create_retina_curvature(synteyes_orig, mu_retina, cov_retina):
     n_rows = len(axial_lengths)
     cond_sgm = np.reshape(cond_sgm, (n_rows, 3))
 
-    synteyes_orig["ell_rx"] = cond_sgm[:, 0]
-    synteyes_orig["ell_ry"] = cond_sgm[:, 1]
-    synteyes_orig["ell_rz"] = cond_sgm[:, 2]
+    synteyes_orig["ret_rx"] = cond_sgm[:, 0]
+    synteyes_orig["ret_ry"] = cond_sgm[:, 1]
+    synteyes_orig["ret_rz"] = cond_sgm[:, 2]
     return synteyes_orig
 
 
@@ -334,15 +340,15 @@ COLUMN_HINTS = {
         "nc": "Refractive index of the cornea",
         "na": "Refractive index of the aqueous",
         "nv": "Refractive index of the vitreous",
-        "ell_rx": "Retinal ellipsoid radius along x (mm)",
-        "ell_ry": "Retinal ellipsoid radius along y (mm)",
-        "ell_rz": "Retinal ellipsoid radius along z (mm)",
+        "ret_rx": "Retinal ellipsoid radius along x (mm)",
+        "ret_ry": "Retinal ellipsoid radius along y (mm)",
+        "ret_rz": "Retinal ellipsoid radius along z (mm)",
 }
 
 PREFIX_HINTS = {
-        "CorZa": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
-        "CorZp": "Zernikes of posterior corneal surface (mm, 8th order, 6.5 mm diameter)",
-        "LensZa": "Anterior lens Zernike coefficients (mm, 5th order, 5.5 mm diameter)",
+        "CorAntZ": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+        "CorPostZ": "Zernikes of posterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+        "LensAntZ": "Zernikes of anterior lens surface (mm, 5th order, 5.5 mm diameter)",
 }
 
 ui.tags.style("table { display: block; overflow-x: auto; }", "th, td { white-space: nowrap; }")
@@ -430,9 +436,9 @@ def displayed_data():
         "LT",
         "AxialLength",
         "VD",
-        "ell_rx",
-        "ell_ry",
-        "ell_rz",
+        "ret_rx",
+        "ret_ry",
+        "ret_rz",
     ]
     selected_columns = [col for col in preferred_columns if col in df.columns]
     return df[selected_columns]
