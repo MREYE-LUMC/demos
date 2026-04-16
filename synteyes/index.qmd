@@ -499,6 +499,11 @@ with ui.card():
 
     @render.ui
     def result_summary():
+        if input.generate() == 0:
+            return ui.markdown(
+                "Enter the amount of eyes and click **Generate SyntEyes**."
+            )
+            
         df = generated_data()
         shown_df = displayed_data()
         mode_label = "compact" if input.compact_view() else "expanded"
@@ -517,7 +522,7 @@ with ui.card():
     with ui.layout_columns():
         ui.input_numeric(
             "single_axial_length",
-            "Which axial length (mm) does the eye have:",
+            "Axial length of the eye [mm]",
             value=24.0,
             min=0.1,
             step=0.1,
@@ -525,22 +530,15 @@ with ui.card():
         ui.input_action_button("generate_retina", "Generate Retina Radii")
 
     @render.ui
-    def retina_result_summary():
-        if input.generate_retina() == 0:
-            return ui.markdown(
-                "Enter an axial length and click **Generate Retina Radii**."
-            )
+    def retina_result():
+        @render.table
+        def retina_result_table():
+            return generated_retina_curvature().round(2)
 
-        row = generated_retina_curvature().iloc[0]
-        return ui.markdown(
-            f"Generated retinal radii for axial length **{row['AxialLength']:.2f} mm**."
-        )
-
-    @render.table
-    def retina_result_table():
         if input.generate_retina() == 0:
-            return pd.DataFrame(columns=["AxialLength", "ret_rx", "ret_ry", "ret_rz"])
-        return generated_retina_curvature().round(2)
+            return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
+
+        return retina_result_table
 
 
 ## file: modeldata.json
