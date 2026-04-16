@@ -325,7 +325,65 @@ COV_AL_RADII = np.array(
     ]
 )
 
+COLUMN_HINTS = {
+        "CCT": "Pachymetry (mm)",
+        "ACD": "Anterior chamber depth (mm)",
+        "LT": "Lens thickness (mm)",
+        "AxialLength": "Axial length (mm)",
+        "VD": "Vitreous depth excluding retina (mm)",
+        "RT": "Retinal thickness (fixed value 0.2 mm)",
+        "Rla": "Radius of curvature for the anterior lens surface (mm)",
+        "Rlp": "Radius of curvature for the posterior lens surface (mm)",
+        "Qla": "Asphericity for the anterior lens surface (Navarro eye model)",
+        "Qlp": "Asphericity for the posterior lens surface (Navarro eye model)",
+        "Pupil": "Pupil diameter (fixed value 5 mm)",
+        "Rret": "Radius of curvature of the retinal surface (Navarro eye model)",
+        "nc": "Refractive index of the cornea",
+        "na": "Refractive index of the aqueous",
+        "nv": "Refractive index of the vitreous",
+        "ell_rx": "Retinal ellipsoid radius along x (mm)",
+        "ell_ry": "Retinal ellipsoid radius along y (mm)",
+        "ell_rz": "Retinal ellipsoid radius along z (mm)",
+}
+
+PREFIX_HINTS = {
+        "CorZa": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+        "CorZp": "Zernikes of posterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+        "LensZa": "Anterior lens Zernike coefficients (mm, 5th order, 5.5 mm diameter)",
+}
+
 ui.tags.style("table { display: block; overflow-x: auto; }", "th, td { white-space: nowrap; }")
+ui.tags.script(
+        f"""
+(() => {{
+    const columnHints = {json.dumps(COLUMN_HINTS)};
+    const prefixHints = {json.dumps(PREFIX_HINTS)};
+
+    const hintForColumn = (columnName) => {{
+        if (columnHints[columnName]) return columnHints[columnName];
+        for (const [prefix, hint] of Object.entries(prefixHints)) {{
+            if (columnName.startsWith(prefix)) return hint;
+        }}
+        return "";
+    }};
+
+    const applyColumnHints = () => {{
+        document.querySelectorAll("table.dataframe thead th").forEach((th) => {{
+            const columnName = (th.textContent || "").trim();
+            if (!columnName) return;
+            const hint = hintForColumn(columnName);
+            if (hint) th.setAttribute("title", hint);
+        }});
+    }};
+
+    document.addEventListener("DOMContentLoaded", applyColumnHints);
+    new MutationObserver(applyColumnHints).observe(document.body, {{
+        childList: true,
+        subtree: true,
+    }});
+}})();
+"""
+)
 
 with ui.card():
     ui.card_header("Create n SyntEyes")
