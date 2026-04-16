@@ -190,7 +190,6 @@ def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
         cor_m = int(ind_cor[idx, 1])
         synteyes[f"CorPostZ({cor_n},{cor_m})"] = [cor_zp[:, idx][0]]
 
-
     return pd.DataFrame.from_dict(synteyes)
 
 
@@ -279,12 +278,18 @@ def nearest_psd(matrix):
         Matrix with eigenvalues clipped to a small positive threshold.
     """
     eigval, eigvec = np.linalg.eig(matrix)
-    return eigvec @ np.diag(np.maximum(eigval, 10 ** -6)) @ eigvec.T
+    return eigvec @ np.diag(np.maximum(eigval, 10**-6)) @ eigvec.T
 
 
 def generate_synteyes(n):
     eigen_data = create_mgmm_data(
-        mu_orig[0], mu_orig[1], cov_orig0, cov_orig1, weights_orig[0], weights_orig[1], n
+        mu_orig[0],
+        mu_orig[1],
+        cov_orig0,
+        cov_orig1,
+        weights_orig[0],
+        weights_orig[1],
+        n,
     )
 
     synteyes_orig = pd.DataFrame([])
@@ -292,7 +297,9 @@ def generate_synteyes(n):
         synteyes_orig_single = convert_to_single_orig_synteyes(
             eigen_data[i], conv_ec_orig, avg_ec_orig, lens_za_orig
         )
-        synteyes_orig = pd.concat([synteyes_orig, synteyes_orig_single], ignore_index=True)
+        synteyes_orig = pd.concat(
+            [synteyes_orig, synteyes_orig_single], ignore_index=True
+        )
 
     return create_retina_curvature(synteyes_orig, MU_AL_RADII, COV_AL_RADII)
 
@@ -325,35 +332,37 @@ COV_AL_RADII = np.array(
 )
 
 COLUMN_HINTS = {
-        "CCT": "Pachymetry (mm)",
-        "ACD": "Anterior chamber depth (mm)",
-        "LT": "Lens thickness (mm)",
-        "AxialLength": "Axial length (mm)",
-        "VD": "Vitreous depth excluding retina (mm)",
-        "RT": "Retinal thickness (fixed value 0.2 mm)",
-        "Rla": "Radius of curvature for the anterior lens surface (mm)",
-        "Rlp": "Radius of curvature for the posterior lens surface (mm)",
-        "Qla": "Asphericity for the anterior lens surface (Navarro eye model)",
-        "Qlp": "Asphericity for the posterior lens surface (Navarro eye model)",
-        "Pupil": "Pupil diameter (fixed value 5 mm)",
-        "Rret": "Radius of curvature of the retinal surface (Navarro eye model)",
-        "nc": "Refractive index of the cornea",
-        "na": "Refractive index of the aqueous",
-        "nv": "Refractive index of the vitreous",
-        "ret_rx": "Retinal ellipsoid radius along x (mm)",
-        "ret_ry": "Retinal ellipsoid radius along y (mm)",
-        "ret_rz": "Retinal ellipsoid radius along z (mm)",
+    "CCT": "Pachymetry (mm)",
+    "ACD": "Anterior chamber depth (mm)",
+    "LT": "Lens thickness (mm)",
+    "AxialLength": "Axial length (mm)",
+    "VD": "Vitreous depth excluding retina (mm)",
+    "RT": "Retinal thickness (fixed value 0.2 mm)",
+    "Rla": "Radius of curvature for the anterior lens surface (mm)",
+    "Rlp": "Radius of curvature for the posterior lens surface (mm)",
+    "Qla": "Asphericity for the anterior lens surface (Navarro eye model)",
+    "Qlp": "Asphericity for the posterior lens surface (Navarro eye model)",
+    "Pupil": "Pupil diameter (fixed value 5 mm)",
+    "Rret": "Radius of curvature of the retinal surface (Navarro eye model)",
+    "nc": "Refractive index of the cornea",
+    "na": "Refractive index of the aqueous",
+    "nv": "Refractive index of the vitreous",
+    "ret_rx": "Retinal ellipsoid radius along x (mm)",
+    "ret_ry": "Retinal ellipsoid radius along y (mm)",
+    "ret_rz": "Retinal ellipsoid radius along z (mm)",
 }
 
 PREFIX_HINTS = {
-        "CorAntZ": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
-        "CorPostZ": "Zernikes of posterior corneal surface (mm, 8th order, 6.5 mm diameter)",
-        "LensAntZ": "Zernikes of anterior lens surface (mm, 5th order, 5.5 mm diameter)",
+    "CorAntZ": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+    "CorPostZ": "Zernikes of posterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+    "LensAntZ": "Zernikes of anterior lens surface (mm, 5th order, 5.5 mm diameter)",
 }
 
-ui.tags.style("table { display: block; overflow-x: auto; }", "th, td { white-space: nowrap; }")
+ui.tags.style(
+    "table { display: block; overflow-x: auto; }", "th, td { white-space: nowrap; }"
+)
 ui.tags.script(
-        f"""
+    f"""
 (() => {{
     const columnHints = {json.dumps(COLUMN_HINTS)};
     const prefixHints = {json.dumps(PREFIX_HINTS)};
@@ -386,22 +395,34 @@ ui.tags.script(
 
 with ui.card():
     ui.card_header("Create n SyntEyes")
-    with ui.layout_columns():
+    with ui.layout_columns(class_="align-items-end"):
         ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
-        ui.input_checkbox("compact_view", "Compact column view", value=True)
 
-        with ui.panel_conditional("input.generate == 0"):
-            ui.tags.button("Download CSV", disabled=True, class_="btn btn-default")
-            ui.tags.button("Download JSON", disabled=True, class_="btn btn-default")
+        def show_error_message():
+            ui.show_toast(ui.toast(header="Tralala", type="error"))
 
-        with ui.panel_conditional("input.generate > 0"):
+        @render.ui
+        def download_csv_button():
             @render.download(filename="synteyes.csv", label="Download CSV")
             def download_csv():
                 yield generated_data().to_csv(index=False)
 
+            if input.generate() == 0:
+                return ui.input_action_button(
+                    "download_csv", label="Download CSV", disabled=True
+                )
+
+            return download_csv
+
+        @render.ui
+        def download_json_button():
             @render.download(filename="synteyes.json", label="Download JSON")
             def download_json():
+                if input.generate() == 0:
+                    show_error_message()
+                    return
+
                 def _json_default(obj):
                     if isinstance(obj, np.generic):
                         return obj.item()
@@ -413,6 +434,13 @@ with ui.card():
 
                 records = generated_data().to_dict(orient="records")
                 yield json.dumps(records, separators=(",", ":"), default=_json_default)
+
+            if input.generate() == 0:
+                return ui.input_action_button(
+                    "download_json", label="Download JSON", disabled=True
+                )
+
+            return download_json
 
 
 @reactive.calc
@@ -445,7 +473,15 @@ def displayed_data():
 
 
 with ui.card():
-    ui.card_header("Result")
+    with ui.card_header():
+        "Result"
+        with ui.toolbar(align="right"):
+            ui.toolbar_input_select(
+                id="compact_view",
+                label="Compact view",
+                choices={False: "Compact", True: "Expanded"},
+                selected="Compact",
+            )
 
     @render.ui
     def result_summary():
