@@ -19,6 +19,7 @@ edit.html
 /.quarto/
 
 **/*.quarto_ipynb
+**/*.quarto_ipynb_*
 
 # Node.js
 node_modules/
