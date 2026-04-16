@@ -20,7 +20,7 @@ website:
       - href: visisipy/index.qmd
         text: Visisipy
       - href: synteyes/index.qmd
-        text: Synteyes3D
+        text: 3D SyntEyes
       - href: https://mreye.nl
         text: About us
     right:

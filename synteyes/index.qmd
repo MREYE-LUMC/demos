@@ -10,12 +10,11 @@ format:
     include-after-body: [../_includes/mdr-modal.html, ../_includes/resize-iframe.html]
 ---
 
-This demo allows you to create realistic model eyes for scientific purposes.
-The biometric model is based on [SyntEyes by Jos Rozema](https://doi.org/10.1167/iovs.16-20877), a statistical model that generates realistic ocular biometry using a multivariate Gaussian mixture model fitted to clinical population data.
+This demo allows you to create realistic model geometric eyes based on the paper "Three-dimensional statistical eye models" of van Dam et al. The code can be found at [https://github.com/MREYE-LUMC](https://github.com/MREYE-LUMC).
 
-The retinal shape component is based on the van Dam extension, which adds a realistic retinal curvature model, based on the axial length and high resolution MRI data of the healthy population.
+The underlying biometric model is based on [SyntEyes by Jos Rozema](https://doi.org/10.1167/iovs.16-20877), a statistical model that generates realistic ocular biometry using a multivariate Gaussian mixture model fitted to clinical population data. The retinal component is based on [the van Dam extension](link) of this model, which adds a realistic retinal curvature model, based on a single Gaussian model of the relation between the axial length and retinal curvature, based on high resolution MRI data of the healthy population.
 
-Set the number of eyes and click **Generate 3D SyntEyes**.
+This demo consists of two parts: the first parts **generates complete 3D SyntEyes** with both corneal and retinal parameters, while the second part allows you to **generate realistic retinal radii** for a specific axial length.
 
 <!-- Note: the edit.html file is generated automatically. -->
 [Edit the demo](edit.html){.btn .btn-outline-primary .btn role="button" .external}
@@ -394,7 +393,7 @@ ui.tags.script(
 )
 
 with ui.card():
-    ui.card_header("Create n SyntEyes")
+    ui.card_header("Create 3D SyntEyes")
     with ui.layout_columns(class_="align-items-end"):
         ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
@@ -453,6 +452,21 @@ def generated_data():
 
 
 @reactive.calc
+@reactive.event(input.generate_retina)
+def generated_retina_curvature():
+    al = float(input.single_axial_length())
+    conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(
+        MU_AL_RADII, COV_AL_RADII, [0], al
+    )
+    rx, ry, rz = stats.multivariate_normal.rvs(
+        mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1
+    )
+    return pd.DataFrame(
+        [{"AxialLength": al, "ret_rx": float(rx), "ret_ry": float(ry), "ret_rz": float(rz)}]
+    )
+
+
+@reactive.calc
 def displayed_data():
     df = generated_data()
     if not input.compact_view():
@@ -496,6 +510,37 @@ with ui.card():
     @render.table
     def result_table():
         return displayed_data().head(20)
+
+
+with ui.card():
+    ui.card_header("Create retina radii from axial length")
+    with ui.layout_columns():
+        ui.input_numeric(
+            "single_axial_length",
+            "Which axial length (mm) does the eye have:",
+            value=24.0,
+            min=0.1,
+            step=0.1,
+        )
+        ui.input_action_button("generate_retina", "Generate Retina Radii")
+
+    @render.ui
+    def retina_result_summary():
+        if input.generate_retina() == 0:
+            return ui.markdown(
+                "Enter an axial length and click **Generate Retina Radii**."
+            )
+
+        row = generated_retina_curvature().iloc[0]
+        return ui.markdown(
+            f"Generated retinal radii for axial length **{row['AxialLength']:.2f} mm**."
+        )
+
+    @render.table
+    def retina_result_table():
+        if input.generate_retina() == 0:
+            return pd.DataFrame(columns=["AxialLength", "ret_rx", "ret_ry", "ret_rz"])
+        return generated_retina_curvature().round(2)
 
 
 ## file: modeldata.json
