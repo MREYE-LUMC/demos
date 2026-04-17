@@ -16,16 +16,8 @@ wheels/
 dist/
 public/shinylive/
 
-# Quarto
-.quarto/
-_site/
-site_libs/
-edit.html
-
-/.quarto/
-
-**/*.quarto_ipynb
-**/*.quarto_ipynb_*
+# Cloudflare
+.wrangler/
 
 # Node.js
 node_modules/
@@ -35,5 +27,3 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-
-/.luarc.json
