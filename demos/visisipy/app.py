@@ -1,0 +1,521 @@
+import visisipy
+import faicons
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+from itertools import cycle
+from matplotlib.colors import TABLEAU_COLORS, LogNorm
+from shiny import App, Inputs, Outputs, Session, reactive, render, ui
+
+plt.rcParams["axes.grid"] = True
+plt.rcParams["grid.linestyle"] = ":"
+
+pd.options.display.float_format = "{:,.2f}".format
+
+visisipy.set_backend("optiland")
+
+default_parameters = {
+    "fields": {0, 30, 60},
+    "wavelength": 0.543,
+    "geometry": visisipy.NavarroGeometry(),
+    "pupil_diameter": 3.0,
+}
+
+model_parameters = {
+    "Fields": [
+        ui.card(
+            ui.input_numeric(
+                "field_angle", "Field angle [°]", 0, min=0, max=90, step=5
+            ),
+            ui.input_action_button("add_field", "Add field"),
+        ),
+        ui.input_selectize(
+            "current_fields",
+            "Current fields",
+            {str(i): f"{i} °" for i in sorted(default_parameters["fields"])},
+            selected=list(map(str, default_parameters["fields"])),
+            multiple=True,
+        ),
+        ui.input_action_button("clear_fields", "Clear all fields"),
+        ui.input_numeric(
+            "wavelength", "Wavelength [μm]", 0.543, min=0.38, max=0.75, step=0.1
+        ),
+    ],
+    "Biometry": [
+        ui.input_numeric(
+            "axial_length",
+            "Axial length [mm]",
+            round(default_parameters["geometry"].axial_length, 3),
+            min=0,
+            step=1,
+        ),
+        ui.input_numeric(
+            "cornea_thickness",
+            "Cornea thickness [mm]",
+            default_parameters["geometry"].cornea_thickness,
+            min=0,
+            step=0.1,
+        ),
+        ui.input_numeric(
+            "anterior_chamber_depth",
+            "Anterior chamber depth [mm]",
+            default_parameters["geometry"].anterior_chamber_depth,
+            min=0,
+            step=0.1,
+        ),
+        ui.input_numeric(
+            "lens_thickness",
+            "Lens thickness [mm]",
+            default_parameters["geometry"].lens_thickness,
+            min=0,
+            step=0.5,
+        ),
+    ],
+    "Cornea front": [
+        ui.input_numeric(
+            "cornea_front_radius",
+            "Radius [mm]",
+            default_parameters["geometry"].cornea_front.radius,
+            min=0,
+            step=1,
+        ),
+        ui.input_numeric(
+            "cornea_front_asphericity",
+            "Asphericity [-]",
+            default_parameters["geometry"].cornea_front.asphericity,
+            step=0.1,
+        ),
+    ],
+    "Cornea back": [
+        ui.input_numeric(
+            "cornea_back_radius",
+            "Radius [mm]",
+            default_parameters["geometry"].cornea_back.radius,
+            min=0,
+            step=1,
+        ),
+        ui.input_numeric(
+            "cornea_back_asphericity",
+            "Asphericity [-]",
+            default_parameters["geometry"].cornea_back.asphericity,
+            step=0.1,
+        ),
+    ],
+    "Pupil": [
+        ui.input_numeric(
+            "pupil_diameter",
+            "Diameter [mm]",
+            default_parameters["pupil_diameter"],
+            min=0,
+            step=1,
+        ),
+    ],
+    "Lens front": [
+        ui.input_numeric(
+            "lens_front_radius",
+            "Radius [mm]",
+            default_parameters["geometry"].lens_front.radius,
+            min=0,
+            step=1,
+        ),
+        ui.input_numeric(
+            "lens_front_asphericity",
+            "Asphericity [-]",
+            default_parameters["geometry"].lens_front.asphericity,
+            step=0.1,
+        ),
+    ],
+    "Lens back": [
+        ui.input_numeric(
+            "lens_back_radius",
+            "Radius [mm]",
+            default_parameters["geometry"].lens_back.radius,
+            max=0,
+            step=1,
+        ),
+        ui.input_numeric(
+            "lens_back_asphericity",
+            "Asphericity [-]",
+            default_parameters["geometry"].lens_back.asphericity,
+            step=0.1,
+        ),
+    ],
+    "Retina": [
+        ui.input_numeric(
+            "retina_ellipsoid_z_radius",
+            "Z radius [mm]",
+            default_parameters["geometry"].retina.ellipsoid_radii.z,
+            max=0,
+            step=1,
+        ),
+        ui.input_numeric(
+            "retina_ellipsoid_y_radius",
+            "Y radius [mm]",
+            default_parameters["geometry"].retina.ellipsoid_radii.y,
+            min=0,
+            step=1,
+        ),
+    ],
+}
+
+app_ui = ui.page_fluid(
+    ui.layout_sidebar(
+        ui.sidebar(
+            ui.accordion(
+                *(
+                    ui.accordion_panel(title, settings)
+                    for title, settings in model_parameters.items()
+                ),
+                id="eye_model",
+            ),
+            ui.input_action_button("restore_defaults", "Restore defaults"),
+            title="Model settings",
+        ),
+        ui.row(
+            ui.column(
+                6,
+                ui.card(
+                    ui.card_header("Raytrace result"), ui.output_plot("plot_raytrace")
+                ),
+            ),
+            ui.column(
+                6,
+                ui.value_box(
+                    title="Central spherical equivalent",
+                    value=ui.output_ui("central_refraction"),
+                    showcase=faicons.icon_svg("glasses", width="50px"),
+                    theme="blue",
+                ),
+                ui.card(
+                    ui.card_header("Refraction by field"),
+                    ui.output_table("table_properties"),
+                    "Note: J45 is always 0, because this demo does not support astigmatic eyes.",
+                ),
+            ),
+        ),
+        ui.row(
+            ui.column(
+                8,
+                ui.card(
+                    ui.card_header("Fourier power vector as function of eccentricity"),
+                    ui.output_plot("plot_power_vectors"),
+                ),
+            ),
+            ui.column(
+                4,
+                ui.card(
+                    ui.card_header("Central FFT PSF"),
+                    ui.output_plot("plot_fft_psf"),
+                ),
+            ),
+        ),
+    )
+)
+
+
+def server(input: Inputs, output: Outputs, session: Session):
+    fields = reactive.value(default_parameters["fields"])
+
+    def update_current_fields_selectize(fields):
+        ui.update_selectize(
+            id="current_fields",
+            choices={str(i): f"{i} °" for i in sorted(fields)},
+            selected=[str(i) for i in sorted(fields)],
+        )
+
+    def update_backend_settings():
+        visisipy.update_settings(
+            fields=[(0, y) for y in fields()],
+            wavelengths=[input.wavelength()],
+            aperture_value=input.pupil_diameter(),
+        )
+
+    @reactive.effect
+    @reactive.event(input.add_field, ignore_none=True)
+    def add_field():
+        """Add a field to the system."""
+        new_field = input.field_angle()
+
+        if new_field is not None:
+            fields.set(fields() | {new_field})
+
+            # Update selectize
+            update_current_fields_selectize(fields())
+
+    @reactive.effect
+    @reactive.event(input.current_fields)
+    def remove_field():
+        """Remove a field from the system by removing it from the current_fields selectize."""
+        current_fields = set(int(f) for f in input.current_fields())
+
+        if current_fields != fields():
+            fields.set(set(sorted(current_fields)))
+            update_current_fields_selectize(current_fields)
+
+    @reactive.effect
+    @reactive.event(input.clear_fields, ignore_none=True)
+    def clear_fields():
+        """Clear all fields except for the central field."""
+        fields.set({0})
+        update_current_fields_selectize({0})
+
+    @reactive.effect
+    @reactive.calc
+    def update_backend_settings_effect():
+        update_backend_settings()
+
+    @reactive.effect
+    @reactive.event(input.restore_defaults)
+    def reset_eye_model():
+        geometry = default_parameters["geometry"]
+
+        ui.update_numeric(id="axial_length", value=round(geometry.axial_length, 3))
+        ui.update_numeric(
+            id="cornea_thickness",
+            value=geometry.cornea_thickness,
+        )
+        ui.update_numeric(
+            id="anterior_chamber_depth", value=geometry.anterior_chamber_depth
+        )
+        ui.update_numeric(
+            id="lens_thickness",
+            value=geometry.lens_thickness,
+        )
+        ui.update_numeric(
+            id="cornea_front_radius",
+            value=geometry.cornea_front.radius,
+        )
+        ui.update_numeric(
+            id="cornea_front_asphericity",
+            value=geometry.cornea_front.asphericity,
+        )
+        ui.update_numeric(
+            id="cornea_back_radius",
+            value=geometry.cornea_back.radius,
+        )
+        ui.update_numeric(
+            id="cornea_back_asphericity",
+            value=geometry.cornea_back.asphericity,
+        )
+        ui.update_numeric(
+            id="lens_front_radius",
+            value=geometry.lens_front.radius,
+        )
+        ui.update_numeric(
+            id="lens_front_asphericity",
+            value=geometry.lens_front.asphericity,
+        )
+        ui.update_numeric(
+            id="lens_back_radius",
+            value=geometry.lens_back.radius,
+        )
+        ui.update_numeric(
+            id="lens_back_asphericity",
+            value=geometry.lens_back.asphericity,
+        )
+        ui.update_numeric(
+            id="retina_ellipsoid_z_radius",
+            value=geometry.retina.ellipsoid_radii.z,
+        )
+        ui.update_numeric(
+            id="retina_ellipsoid_y_radius",
+            value=geometry.retina.ellipsoid_radii.y,
+        )
+        ui.update_numeric(
+            id="pupil_diameter",
+            value=default_parameters["pupil_diameter"],
+        )
+
+        update_backend_settings()
+
+    @reactive.calc
+    def eye_model() -> visisipy.EyeModel:
+        update_backend_settings()
+
+        geometry = visisipy.create_geometry(
+            axial_length=input.axial_length(),
+            cornea_front_radius=input.cornea_front_radius(),
+            cornea_front_asphericity=input.cornea_front_asphericity(),
+            cornea_back_radius=input.cornea_back_radius(),
+            cornea_back_asphericity=input.cornea_back_asphericity(),
+            cornea_thickness=input.cornea_thickness(),
+            anterior_chamber_depth=input.anterior_chamber_depth(),
+            lens_front_radius=input.lens_front_radius(),
+            lens_front_asphericity=input.lens_front_asphericity(),
+            lens_back_radius=input.lens_back_radius(),
+            lens_back_asphericity=input.lens_back_asphericity(),
+            lens_thickness=input.lens_thickness(),
+            retina_ellipsoid_z_radius=input.retina_ellipsoid_z_radius(),
+            retina_ellipsoid_y_radius=input.retina_ellipsoid_y_radius(),
+            pupil_radius=input.pupil_diameter() / 2,
+        )
+        model = visisipy.EyeModel(geometry)
+        model.build()
+
+        return model
+
+    @reactive.calc
+    def raytrace():
+        # Depend on wavelength and fields
+        fields()
+        wavelength = input.wavelength()
+
+        model = eye_model()
+        optic = visisipy.backend.get_optic()
+        anterior_segment_length = (
+            model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
+        )
+
+        result = []
+
+        # Use a custom raytrace approach for improved visualization
+        for field in optic.fields.get_field_coords():
+            optic.trace(*field, wavelength, 3, "line_y")
+
+            z = optic.surface_group.z
+            y = optic.surface_group.y
+
+            z -= anterior_segment_length
+
+            result.append((z, y))
+
+        return result
+
+    @reactive.calc
+    def refraction():
+        # Depend on wavelength
+        input.wavelength()
+
+        model = eye_model()
+
+        refractions = [
+            visisipy.analysis.refraction(field_coordinate=(0, y))
+            for y in range(0, 90, 5)
+        ]
+
+        # Reset field settings
+        visisipy.update_settings()
+
+        return refractions
+
+    # Outputs
+
+    @render.plot
+    def plot_raytrace():
+        # Depend on wavelength and fields
+        fields()
+        input.wavelength()
+
+        model = eye_model()
+        optic = visisipy.backend.get_optic()
+
+        margin = 3
+        x_min = -(
+            model.geometry.cornea_thickness
+            + model.geometry.anterior_chamber_depth
+            + margin
+        )
+        x_max = (
+            model.geometry.lens_thickness + model.geometry.vitreous_thickness + margin
+        )
+        y_max = model.geometry.retina.ellipsoid_radii.y + margin
+        y_min = -y_max
+
+        fig, ax = plt.subplots()
+
+        for (z, y), c in zip(raytrace(), cycle(TABLEAU_COLORS)):
+            ax.plot(z, y, color=c)
+
+        visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
+
+        ax.set_xlabel("Z [mm]")
+        ax.set_ylabel("Y [mm]")
+
+        ax.set_aspect("equal")
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+
+        return fig
+
+    @render.table
+    def table_properties():
+        # Depend on eye model and wavelength
+        eye_model()
+        input.wavelength()
+
+        data = []
+
+        for field in sorted(fields()):
+            refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
+            strehl_ratio = visisipy.analysis.strehl_ratio(
+                field_coordinate=(0, field), psf_type="fft"
+            )
+
+            data.append(
+                {
+                    "Field": f"{field} °",
+                    "M [D]": refraction.M,
+                    "J0 [D]": refraction.J0,
+                    "J45 [D]": refraction.J45,
+                    "Strehl ratio": strehl_ratio,
+                }
+            )
+
+        # Reset field settings
+        visisipy.update_settings()
+
+        df = pd.DataFrame(data)
+        return (
+            df.style.format(precision=2)
+            .hide(axis="index")
+            .set_table_styles([dict(selector="th", props=[("text-align", "left")])])
+        )
+
+    @render.ui
+    def central_refraction():
+        return f"{refraction()[0].M:.2f} D"
+
+    @render.plot
+    def plot_power_vectors():
+        fig, ax = plt.subplots()
+
+        ax.plot(range(0, 90, 5), [r.M for r in refraction()], label="$M$")
+        ax.plot(range(0, 90, 5), [r.J0 for r in refraction()], label="$J_0$")
+        ax.plot(range(0, 90, 5), [r.J45 for r in refraction()], label="$J_{45}$")
+        ax.legend()
+        ax.grid(ls=":")
+        ax.set_xlabel("Eccentricity [°]")
+        ax.set_ylabel("Power vector [D]")
+
+        return fig
+
+    @render.plot
+    def plot_fft_psf():
+        # Depend on the eye model
+        eye_model()
+
+        fig, ax = plt.subplots()
+
+        psf = visisipy.analysis.fft_psf(
+            field_coordinate=(0, 0), wavelength=input.wavelength()
+        )
+
+        im = ax.imshow(
+            psf,
+            extent=(psf.columns[0], psf.columns[-1], psf.index[-1], psf.index[0]),
+            origin="lower",
+            norm=LogNorm(vmin=1e-5),
+        )
+        ax.set_xlabel("X [μm]")
+        ax.set_ylabel("Y [μm]")
+
+        plt.colorbar(
+            im, ax=ax, use_gridspec=True, fraction=0.05, label="Relative intensity"
+        )
+
+        return fig
+
+
+app = App(app_ui, server)
+

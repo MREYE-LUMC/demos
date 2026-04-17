@@ -1,0 +1,121 @@
+---
+import MainLayout from "./MainLayout.astro";
+import MdrModal from "../components/MdrModal.astro";
+import IframeResizeScript from "../components/IframeResizeScript.astro";
+
+interface Props {
+  title: string;
+  demoSlug: string;
+  repoUrl?: string;
+  paperUrl?: string;
+}
+
+const {
+  title,
+  demoSlug,
+  repoUrl,
+  paperUrl,
+} = Astro.props;
+
+const editUrl = `/shinylive/${demoSlug}/edit/`;
+const appUrl = `/shinylive/${demoSlug}/`;
+---
+
+<MainLayout title={title} wide={true}>
+  <article class="w-full">
+    <section class="mx-auto max-w-3xl space-y-5">
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{title}</h1>
+
+      <div class="space-y-4 text-slate-700 [&_a]:font-medium [&_a]:text-cyan-700 [&_a]:underline-offset-2 hover:[&_a]:text-cyan-800 hover:[&_a]:underline [&_li]:ml-5 [&_li]:list-disc [&_p]:leading-7 [&_p]:max-w-none">
+        <slot />
+      </div>
+
+      <div class="flex flex-wrap gap-3 pt-1">
+        {repoUrl && <a href={repoUrl} class="inline-flex items-center rounded-md border border-cyan-700 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50" role="button">Check the code</a>}
+        {paperUrl && <a href={paperUrl} class="inline-flex items-center rounded-md border border-cyan-700 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50" role="button">Read the paper</a>}
+        <a href={editUrl} class="inline-flex items-center rounded-md border border-cyan-700 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50" role="button">Edit the demo</a>
+      </div>
+    </section>
+
+    <div class="shinylive-embed relative mt-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_45px_rgba(2,6,23,0.10)] min-h-[76vh]">
+      <button type="button" class="fullscreen-toggle absolute right-5 top-5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white/95 text-slate-700 shadow-sm transition hover:bg-slate-100" data-fullscreen-toggle aria-label="Toggle full screen demo">
+        <svg data-icon-expand viewBox="0 0 20 20" class="h-4 w-4" aria-hidden="true">
+          <path fill="currentColor" d="M3 7V3h4v1.5H4.5V7H3Zm10-4h4v4h-1.5V4.5H13V3ZM3 13h1.5v2.5H7V17H3v-4Zm13 0H17v4h-4v-1.5h2.5V13Z"/>
+        </svg>
+        <svg data-icon-collapse viewBox="0 0 20 20" class="hidden h-4 w-4" aria-hidden="true">
+          <path fill="currentColor" d="M7 3v1.5H4.5V7H3V3h4Zm10 0v4h-1.5V4.5H13V3h4ZM3 13h1.5v2.5H7V17H3v-4Zm12.5 0H17v4h-4v-1.5h2.5V13Z"/>
+          <path fill="currentColor" d="M8 8h4v4H8z"/>
+        </svg>
+      </button>
+      <iframe class="app-frame w-full rounded-xl border-0 bg-white min-h-[76vh]" title={`${title} Shinylive app`} src={appUrl} loading="lazy"></iframe>
+    </div>
+  </article>
+
+  <MdrModal />
+  <IframeResizeScript />
+  <script is:inline>
+    const setupFullscreenButtons = () => {
+      const root = document.documentElement;
+      const header = document.querySelector(".site-header");
+      const buttons = document.querySelectorAll("[data-fullscreen-toggle]");
+
+      const setHeaderHeight = () => {
+        const headerHeight = header ? Math.round(header.getBoundingClientRect().height) : 0;
+        root.style.setProperty("--site-header-height", `${headerHeight}px`);
+      };
+
+      setHeaderHeight();
+      window.addEventListener("resize", setHeaderHeight);
+
+      buttons.forEach((button) => {
+        if (button.dataset.bound === "true") {
+          return;
+        }
+
+        button.dataset.bound = "true";
+        button.addEventListener("click", () => {
+          const embed = button.closest(".shinylive-embed");
+          if (!embed) {
+            return;
+          }
+
+          const willExpand = !embed.classList.contains("viewport-fill");
+
+          document.querySelectorAll(".shinylive-embed.viewport-fill").forEach((node) => {
+            node.classList.remove("viewport-fill");
+          });
+
+          document.querySelectorAll("[data-fullscreen-toggle]").forEach((node) => {
+            node.setAttribute("aria-pressed", "false");
+            const expanded = node.querySelector("[data-icon-expand]");
+            const collapsed = node.querySelector("[data-icon-collapse]");
+            if (expanded && collapsed) {
+              expanded.classList.remove("hidden");
+              collapsed.classList.add("hidden");
+            }
+          });
+
+          if (willExpand) {
+            embed.classList.add("viewport-fill");
+            button.setAttribute("aria-pressed", "true");
+            const expanded = button.querySelector("[data-icon-expand]");
+            const collapsed = button.querySelector("[data-icon-collapse]");
+            if (expanded && collapsed) {
+              expanded.classList.add("hidden");
+              collapsed.classList.remove("hidden");
+            }
+          }
+
+          const hasExpandedDemo = document.querySelector(".shinylive-embed.viewport-fill");
+          document.body.classList.toggle("no-scroll", Boolean(hasExpandedDemo));
+        });
+      });
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", setupFullscreenButtons, { once: true });
+    } else {
+      setupFullscreenButtons();
+    }
+  </script>
+</MainLayout>

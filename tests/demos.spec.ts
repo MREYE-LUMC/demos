@@ -1,6 +1,13 @@
 import { test, expect } from "@playwright/test";
 
-function setupDemoTest(name: string, location: string, heading: string, renderingFinishedIndicator: string, successIndicators?: string[], successIndicatorTimeout: number = 30000) {
+function setupDemoTest(
+  name: string,
+  location: string,
+  heading: string,
+  renderingFinishedIndicator: string,
+  successIndicators?: string[],
+  successIndicatorTimeout: number = 30000,
+) {
   test.describe(name, () => {
     test.beforeEach(async ({ page }) => {
       // Navigate to the demo page
@@ -21,16 +28,16 @@ function setupDemoTest(name: string, location: string, heading: string, renderin
       await expect(page).toHaveTitle(new RegExp(heading));
 
       // Check that the main heading is visible
-      await expect(
-        page.getByRole("heading", { name: heading })
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
 
-      // Wait for the shinylive iframe to be present and get its frame context
-      const iframeLocator = page.locator("iframe");
-      await expect(iframeLocator).toBeVisible();
+      // Wait for the outer shinylive iframe and then target the inner app iframe.
+      // In the Astro site the app UI is rendered inside this nested frame.
+      const outerIframeLocator = page.locator("iframe.app-frame");
+      await expect(outerIframeLocator).toBeVisible();
 
-      // Get the frame content - shinylive renders its content inside the iframe
-      const frame = page.frameLocator("iframe");
+      const frame = page
+        .frameLocator("iframe.app-frame")
+        .frameLocator("iframe");
 
       // The shinylive app shows "Error starting app!" if it fails to load
       // Note: The error message appears on the main page, not inside the iframe
@@ -58,7 +65,7 @@ function setupDemoTest(name: string, location: string, heading: string, renderin
       // If neither condition was met (both timed out), fail the test
       if (result === null) {
         throw new Error(
-          "Demo did not load: neither success nor error state detected within timeout"
+          "Demo did not load: neither success nor error state detected within timeout",
         );
       }
 
@@ -78,16 +85,24 @@ function setupDemoTest(name: string, location: string, heading: string, renderin
 
 setupDemoTest(
   "PAROS Demo",
-  "/paros/index.html",
+  "/paros/",
   "Calculate the central magnification of an eye - camera system",
   "Eye model parameters",
-  ["Magnification"]
+  ["Magnification"],
 );
 
 setupDemoTest(
   "Visisipy Demo",
-  "/visisipy/index.html",
+  "/visisipy/",
   "Ocular ray tracing simulations",
   "Raytrace result",
-  ["Central spherical equivalent"]
+  ["Central spherical equivalent"],
+);
+
+setupDemoTest(
+  "SyntEyes 3D Demo",
+  "/synteyes/",
+  "Create 3D SyntEyes",
+  "Create 3D SyntEyes",
+  ["Enter the amount of eyes and click Generate SyntEyes."],
 );

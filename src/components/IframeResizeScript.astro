@@ -1,0 +1,94 @@
+<script is:inline>
+  (() => {
+    const iframeOffset = 30;
+
+    const iframeSelector = "iframe.app-frame";
+
+    const getEmbed = (iframe) => iframe?.closest(".shinylive-embed");
+
+    const isViewportFill = (iframe) => Boolean(getEmbed(iframe)?.classList.contains("viewport-fill"));
+
+    const getIframe = () => document.querySelector(iframeSelector);
+
+    const isIframeLoaded = () => {
+      const iframe = getIframe();
+      return iframe && iframe.src;
+    };
+
+    const waitForIframeLoad = () =>
+      new Promise((resolve) => {
+        if (isIframeLoaded()) {
+          resolve(getIframe());
+          return;
+        }
+
+        const observer = new MutationObserver(() => {
+          if (isIframeLoaded()) {
+            observer.disconnect();
+            resolve(getIframe());
+          }
+        });
+
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      });
+
+    const registerObserver = (iframe) => {
+      if (!iframe.contentWindow?.document?.body) {
+        return;
+      }
+      const contentRoot = iframe.contentWindow.document.body;
+
+      const syncHeight = () => {
+        if (isViewportFill(iframe)) {
+          iframe.style.removeProperty("height");
+          iframe.style.minHeight = "100%";
+          iframe.style.height = "100%";
+          return;
+        }
+
+        const newHeight = contentRoot.scrollHeight + iframeOffset;
+        iframe.style.height = `${newHeight}px`;
+      };
+
+      let resizeTimeout;
+
+      const handleChange = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          window.requestAnimationFrame(syncHeight);
+        }, 100);
+      };
+
+      const mutationObserver = new MutationObserver(handleChange);
+      mutationObserver.observe(contentRoot, {
+        subtree: true,
+        childList: true,
+        characterData: true
+      });
+
+      syncHeight();
+
+      setTimeout(syncHeight, 250);
+      setTimeout(syncHeight, 1000);
+    };
+
+    waitForIframeLoad().then((iframe) => {
+      if (!iframe) {
+        return;
+      }
+
+      iframe.addEventListener("load", () => {
+        if (!iframe.contentWindow?.document?.body) {
+          return;
+        }
+
+        registerObserver(iframe);
+      });
+
+      registerObserver(iframe);
+    });
+  })();
+</script>

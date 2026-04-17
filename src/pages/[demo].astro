@@ -1,0 +1,23 @@
+---
+import { getCollection, render } from 'astro:content';
+import DemoPageLayout from "../layouts/DemoPageLayout.astro";
+
+export async function getStaticPaths() {
+  const demos = await getCollection('demos');
+  return demos.map(post => ({
+    params: { demo: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<DemoPageLayout
+  title={post.data.title}
+  demoSlug={post.id}
+  paperUrl={post.data.paperUrl}
+>
+  <Content />
+</DemoPageLayout>

@@ -4,11 +4,17 @@ __pycache__/
 build/
 dist/
 wheels/
-!_assets/wheels/
+!/public/_assets/wheels/
+!/public/_assets/wheels/**
 *.egg-info
 
 # Virtual environments
 .venv
+
+# Astro
+.astro/
+dist/
+public/shinylive/
 
 # Quarto
 .quarto/
@@ -19,6 +25,7 @@ edit.html
 /.quarto/
 
 **/*.quarto_ipynb
+**/*.quarto_ipynb_*
 
 # Node.js
 node_modules/
@@ -28,3 +35,5 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+/.luarc.json

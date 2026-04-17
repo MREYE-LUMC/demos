@@ -1,0 +1,65 @@
+<div id="mdr-modal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4" aria-labelledby="mdr-modal-label" aria-hidden="true" role="dialog">
+  <div class="absolute inset-0 bg-slate-950/55"></div>
+  <div class="relative z-10 w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-2xl">
+    <div class="mb-4 border-b border-slate-200 pb-3">
+      <h2 class="text-lg font-semibold text-slate-900" id="mdr-modal-label">Terms of Use</h2>
+    </div>
+    <div class="space-y-4 text-sm leading-6 text-slate-700">
+        <p>
+          This app is intended solely for research or education and not for medical or clinical diagnostics.
+          By using this app, you acknowledge that there is <strong>no</strong> warranty for this software and
+          that you use it <strong>at your own risk</strong>.
+        </p>
+        <p>
+          The full terms and conditions are available
+          <a class="font-medium text-cyan-700 hover:text-cyan-800" href="https://github.com/MREYE-LUMC/demos/blob/main/LICENSE.txt">here</a>.
+        </p>
+    </div>
+    <div class="mt-5 flex justify-end border-t border-slate-200 pt-4">
+      <button type="button" id="dismiss-mdr-modal" class="inline-flex items-center rounded-md bg-cyan-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-800">
+          I Agree
+      </button>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (() => {
+    const sessionStorageKey = `shown-mdr-modal-${window.location.pathname}`;
+
+    const showModal = () => {
+      const modal = document.getElementById("mdr-modal");
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    };
+
+    const hideModal = () => {
+      const modal = document.getElementById("mdr-modal");
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove("flex");
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (sessionStorage.getItem(sessionStorageKey) !== "true") {
+        showModal();
+      }
+    });
+
+    document.getElementById("dismiss-mdr-modal")?.addEventListener("click", () => {
+      sessionStorage.setItem(sessionStorageKey, "true");
+      hideModal();
+    });
+  })();
+</script>
