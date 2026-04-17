@@ -58,7 +58,6 @@ const appUrl = `/shinylive/${demoSlug}/`;
   <script is:inline>
     const setupFullscreenButtons = () => {
       const buttons = document.querySelectorAll("[data-fullscreen-toggle]");
-      const originalPositions = new WeakMap();
 
       buttons.forEach((button) => {
         if (button.dataset.bound === "true") {
@@ -75,11 +74,7 @@ const appUrl = `/shinylive/${demoSlug}/`;
           const willExpand = !embed.classList.contains("viewport-fill");
 
           document.querySelectorAll(".shinylive-embed.viewport-fill").forEach((node) => {
-            const original = originalPositions.get(node);
             node.classList.remove("viewport-fill");
-            if (original?.parent) {
-              original.parent.insertBefore(node, original.nextSibling);
-            }
           });
 
           document.querySelectorAll("[data-fullscreen-toggle]").forEach((node) => {
@@ -93,11 +88,6 @@ const appUrl = `/shinylive/${demoSlug}/`;
           });
 
           if (willExpand) {
-            originalPositions.set(embed, {
-              parent: embed.parentNode,
-              nextSibling: embed.nextSibling,
-            });
-            document.body.appendChild(embed);
             embed.classList.add("viewport-fill");
             button.setAttribute("aria-pressed", "true");
             const expanded = button.querySelector("[data-icon-expand]");
