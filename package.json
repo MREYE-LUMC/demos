@@ -9,7 +9,7 @@
     "prebuild": "npm run generate:shinylive",
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "wrangler dev",
     "format": "prettier --write .",
     "test": "npx playwright test"
   },

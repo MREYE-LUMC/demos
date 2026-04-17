@@ -71,10 +71,9 @@ The website build process requires `uv` to generate the Shinylive assets.
    npm run dev
    ```
 
-   The dev server will not render the demos themselves. If you want to include the demos, build the website and then preview it:
+   The dev server will not render the demos themselves. If you want to include the demos, use the `preview` script:
 
    ```bash
-   npm run build
    npm run preview
    ```
 
