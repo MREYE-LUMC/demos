@@ -14,7 +14,7 @@ const demos = defineCollection({
     description: z
       .string()
       .describe("A short description of the demo, shown on the home page."),
-    weight: z.int().describe("The weight of the demo, used for sorting."),
+    weight: z.int().nonnegative().describe("The weight of the demo, used for sorting."),
     repoUrl: z
       .url()
       .optional()

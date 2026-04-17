@@ -7,7 +7,7 @@ Current demos:
 - PAROS
 - Visisipy
 
-Demos are built using [Shiny for Python](https://shiny.posit.co/py/) and embedded in a [Quarto](https://quarto.org/) website using [Shinylive](https://github.com/posit-dev/shinylive).
+Demos are built using [Shiny for Python](https://shiny.posit.co/py/) and embedded in an [Astro](https://astro.build/) website using [Shinylive](https://github.com/posit-dev/shinylive).
 
 ## Dependencies
 

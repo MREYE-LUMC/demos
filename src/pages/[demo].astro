@@ -17,6 +17,7 @@ const { Content } = await render(post);
 <DemoPageLayout
   title={post.data.title}
   demoSlug={post.id}
+  repoUrl={post.data.repoUrl}
   paperUrl={post.data.paperUrl}
 >
   <Content />
