@@ -1,8 +1,11 @@
 ---
 import { getCollection } from "astro:content";
 import MainLayout from "../layouts/MainLayout.astro";
+import { Icon } from "astro-icon/components";
 
-const demos = (await getCollection("demos")).sort((a, b) => a.data.weight - b.data.weight);
+const demos = (await getCollection("demos")).sort(
+  (a, b) => a.data.weight - b.data.weight,
+);
 ---
 
 <MainLayout title="MReye demos">
@@ -35,13 +38,16 @@ const demos = (await getCollection("demos")).sort((a, b) => a.data.weight - b.da
               class="mt-auto inline-flex w-fit items-center rounded-md border border-cyan-700 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
               href={`/${demo.id}/`}
             >
+              <Icon
+                name="heroicons:arrow-top-right-on-square"
+                is:inline={true}
+                class="mr-2"
+              />
               Go to demo
             </a>
           </div>
         </article>
       ))
     }
-
-    </section>
   </section>
 </MainLayout>

@@ -18,9 +18,11 @@
   "license": "MIT",
   "dependencies": {
     "@astrojs/mdx": "^5.0.3",
-    "astro": "^6.1.7"
+    "astro": "^6.1.7",
+    "astro-icon": "^1.1.5"
   },
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.10.1",
