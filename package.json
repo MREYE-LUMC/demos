@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate:shinylive": "node scripts/generate-shinylive-assets.mjs",
+    "generate:shinylive": "node scripts/generate-shinylive-assets.ts",
     "predev": "npm run generate:shinylive",
     "prebuild": "npm run generate:shinylive",
     "dev": "astro dev",
