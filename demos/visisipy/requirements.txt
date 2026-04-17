@@ -1,7 +1,7 @@
 /_assets/wheels/numba-0.61.2-py3-none-any.whl
 /_assets/wheels/vtk-9.4.2-py3-none-any.whl
 
-optiland == 0.6.0
+optiland == 0.5.8
 visisipy == 0.3.0
 
 numpy

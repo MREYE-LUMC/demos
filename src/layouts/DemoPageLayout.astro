@@ -37,7 +37,10 @@ const appUrl = `/shinylive/${demoSlug}/`;
       </div>
     </section>
 
-    <div class="shinylive-embed relative mt-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_45px_rgba(2,6,23,0.10)] min-h-[76vh]">
+    <div
+      class="shinylive-embed rounded-xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(2,6,23,0.10)] min-h-[76vh]"
+      data-shinylive-embed
+    >
       <button type="button" class="fullscreen-toggle absolute right-5 top-5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white/95 text-slate-700 shadow-sm transition hover:bg-slate-100" data-fullscreen-toggle aria-label="Toggle full screen demo">
         <svg data-icon-expand viewBox="0 0 20 20" class="h-4 w-4" aria-hidden="true">
           <path fill="currentColor" d="M3 7V3h4v1.5H4.5V7H3Zm10-4h4v4h-1.5V4.5H13V3ZM3 13h1.5v2.5H7V17H3v-4Zm13 0H17v4h-4v-1.5h2.5V13Z"/>
@@ -52,20 +55,10 @@ const appUrl = `/shinylive/${demoSlug}/`;
   </article>
 
   <MdrModal />
-  <IframeResizeScript />
   <script is:inline>
     const setupFullscreenButtons = () => {
-      const root = document.documentElement;
-      const header = document.querySelector(".site-header");
       const buttons = document.querySelectorAll("[data-fullscreen-toggle]");
-
-      const setHeaderHeight = () => {
-        const headerHeight = header ? Math.round(header.getBoundingClientRect().height) : 0;
-        root.style.setProperty("--site-header-height", `${headerHeight}px`);
-      };
-
-      setHeaderHeight();
-      window.addEventListener("resize", setHeaderHeight);
+      const originalPositions = new WeakMap();
 
       buttons.forEach((button) => {
         if (button.dataset.bound === "true") {
@@ -82,7 +75,11 @@ const appUrl = `/shinylive/${demoSlug}/`;
           const willExpand = !embed.classList.contains("viewport-fill");
 
           document.querySelectorAll(".shinylive-embed.viewport-fill").forEach((node) => {
+            const original = originalPositions.get(node);
             node.classList.remove("viewport-fill");
+            if (original?.parent) {
+              original.parent.insertBefore(node, original.nextSibling);
+            }
           });
 
           document.querySelectorAll("[data-fullscreen-toggle]").forEach((node) => {
@@ -96,6 +93,11 @@ const appUrl = `/shinylive/${demoSlug}/`;
           });
 
           if (willExpand) {
+            originalPositions.set(embed, {
+              parent: embed.parentNode,
+              nextSibling: embed.nextSibling,
+            });
+            document.body.appendChild(embed);
             embed.classList.add("viewport-fill");
             button.setAttribute("aria-pressed", "true");
             const expanded = button.querySelector("[data-icon-expand]");

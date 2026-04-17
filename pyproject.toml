@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "shinylive>=0.8.3",
     "visisipy==0.3.0",
-    "optiland==0.6.0",
+    "optiland==0.5.8",
     "paros >= 1.0.1",
     "sympy",
     "numpy",
