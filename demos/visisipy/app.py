@@ -357,15 +357,12 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @reactive.calc
     def raytrace():
-        # Depend on wavelength and fields
+        # Depend on eye model, wavelength and fields
+        eye_model()
         fields()
         wavelength = input.wavelength()
 
-        model = eye_model()
         optic = visisipy.backend.get_optic()
-        anterior_segment_length = (
-            model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
-        )
 
         result = []
 
@@ -376,18 +373,15 @@ def server(input: Inputs, output: Outputs, session: Session):
             z = optic.surface_group.z
             y = optic.surface_group.y
 
-            z -= anterior_segment_length
-
             result.append((z, y))
 
         return result
 
     @reactive.calc
     def refraction():
-        # Depend on wavelength
+        # Depend on eye model, wavelength
+        eye_model()
         input.wavelength()
-
-        model = eye_model()
 
         refractions = [
             visisipy.analysis.refraction(field_coordinate=(0, y))
@@ -410,18 +404,6 @@ def server(input: Inputs, output: Outputs, session: Session):
         model = eye_model()
         optic = visisipy.backend.get_optic()
 
-        margin = 3
-        x_min = -(
-            model.geometry.cornea_thickness
-            + model.geometry.anterior_chamber_depth
-            + margin
-        )
-        x_max = (
-            model.geometry.lens_thickness + model.geometry.vitreous_thickness + margin
-        )
-        y_max = model.geometry.retina.ellipsoid_radii.y + margin
-        y_min = -y_max
-
         fig, ax = plt.subplots()
 
         for (z, y), c in zip(raytrace(), cycle(TABLEAU_COLORS)):
@@ -431,10 +413,6 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         ax.set_xlabel("Z [mm]")
         ax.set_ylabel("Y [mm]")
-
-        ax.set_aspect("equal")
-        ax.set_xlim(x_min, x_max)
-        ax.set_ylim(y_min, y_max)
 
         return fig
 
@@ -518,4 +496,3 @@ def server(input: Inputs, output: Outputs, session: Session):
 
 
 app = App(app_ui, server)
-

@@ -4,8 +4,8 @@
   "name": "Python 3",
   "image": "mcr.microsoft.com/devcontainers/python:2-3.12-bullseye",
   "features": {
-    "ghcr.io/rocker-org/devcontainer-features/quarto-cli:1": {},
-    "ghcr.io/va-h/devcontainers-features/uv:1": {}
+    "ghcr.io/va-h/devcontainers-features/uv:1": {},
+    "ghcr.io/devcontainers/features/node:1": {}
   },
   "customizations": {
     "vscode": {

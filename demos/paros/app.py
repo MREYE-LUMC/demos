@@ -201,8 +201,4 @@ with ui.card():
         )
         magnification, *_ = calculate_magnification(eye, camera)
 
-        return ui.markdown(
-            f"**Magnification:** {abs(magnification):.2f}"
-        )
-
-
+        return ui.markdown(f"**Magnification:** {abs(magnification):.2f}")
