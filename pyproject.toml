@@ -9,6 +9,6 @@ dependencies = [
     "python-frontmatter>=1.1.0",
     "quarto-cli>=1.9.37",
     "shinylive>=0.8.3",
-    "visisipy==0.3.0",
+    "visisipy==0.4.0",
     "optiland==0.6.0",
 ]
