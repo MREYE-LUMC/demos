@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  # Run on pull requests
+  pull_request:
+    branches:
+      - main
+
+  # Run on push to main
+  push:
+    branches: ["*"]
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Lint
+        run: npx prettier --check .

@@ -1,0 +1,2 @@
+paros >= 1.0.1
+sympy

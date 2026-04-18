@@ -38,9 +38,6 @@ jobs:
         with:
           python-version-file: ".python-version"
 
-      - name: Build website
-        run: uv run quarto render --output-dir _site
-
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -49,6 +46,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build website
+        run: npm run build
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
