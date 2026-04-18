@@ -139,3 +139,12 @@ uv run mock_libraries/build_wheels.py
 
 Building the wheels is only necessary when the code in `mock_libraries/` has been changed.
 URLs to the wheels should be added in `demos/visisipy/requirements.txt`, and above `visisipy`.
+
+## Dependency patching
+
+Shinylive bundles some dependencies through Pyodide, but these are not always compatible with the demo requirements.
+In these cases, the bundled dependencies can be patched with compatible versions.
+The patching process is performed by `scripts/generate-shinylive-assets.ts` and configured through `scripts/shinylive-pyodide-overrides.json`.
+Wheels of the compatible dependency versions can be obtained from PyPI or with `pip download`.
+
+This is (hopefully) a temporary solution until Shinylive upgrades to Pyodide 0.28 or higher, which supports upgrading bundled dependencies.
