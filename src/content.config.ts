@@ -26,6 +26,10 @@ const demos = defineCollection({
       .url()
       .optional()
       .describe("URL to the paper associated with the demo."),
+    showMDRModal: z
+      .boolean()
+      .default(true)
+      .describe("Whether to show the MDR modal on the demo page."),
   }),
 });
 

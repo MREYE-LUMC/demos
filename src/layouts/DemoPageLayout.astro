@@ -8,9 +8,10 @@ interface Props {
   demoSlug: string;
   repoUrl?: string;
   paperUrl?: string;
+  showMDRModal?: boolean;
 }
 
-const { title, demoSlug, repoUrl, paperUrl } = Astro.props;
+const { title, demoSlug, repoUrl, paperUrl, showMDRModal } = Astro.props;
 
 const editUrl = `/shinylive/${demoSlug}/edit/`;
 const appUrl = `/shinylive/${demoSlug}/`;
@@ -115,7 +116,8 @@ const appUrl = `/shinylive/${demoSlug}/`;
     </div>
   </article>
 
-  <MdrModal />
+  {showMDRModal && <MdrModal />}
+
   <script is:inline>
     const setupFullscreenButtons = () => {
       const buttons = document.querySelectorAll("[data-fullscreen-toggle]");
