@@ -1221,7 +1221,7 @@ requires-dist = [
     { name = "python-frontmatter", specifier = ">=1.1.0" },
     { name = "quarto-cli", specifier = ">=1.9.37" },
     { name = "shinylive", specifier = ">=0.8.3" },
-    { name = "visisipy", specifier = "==0.3.0" },
+    { name = "visisipy", specifier = "==0.4.0" },
 ]
 
 [[package]]
@@ -2452,7 +2452,7 @@ wheels = [
 
 [[package]]
 name = "visisipy"
-version = "0.3.0"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -2460,11 +2460,12 @@ dependencies = [
     { name = "numpy" },
     { name = "optiland" },
     { name = "scipy" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
     { name = "zospy", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2f/f4/829f2552529a434cbe4bbef0d0ae1a211f29c4b978af46ad154f323d95b0/visisipy-0.3.0.tar.gz", hash = "sha256:a00634a09462cfea1d41dfaa6a879ab8ba1609b36b0c5577e3f125bd80258f8a", size = 2130608, upload-time = "2025-11-26T20:17:00.786Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/f5/ef4850cf0722270016af34f3b7e636ac00284fa647ee93c05566421a7466/visisipy-0.4.0.tar.gz", hash = "sha256:47dea8e9098c8dd411dc5f1f1faa36f30f09e29f74553635e0a3606cbcd071e0", size = 7785584, upload-time = "2026-04-17T18:45:07.71Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e5/d6/07367d713fbecb484aa46555f3b1e4d786c3ffd302dc0558f3977b42d18e/visisipy-0.3.0-py3-none-any.whl", hash = "sha256:3e7c092879e0a6d6f9e18fa891b4f896bd88ab48c21ec913809d73ae513c6df3", size = 86141, upload-time = "2025-11-26T20:16:59.787Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/dc/0ac03ee08bd0725c16cdaeb9f19a5919ac40ee2db05bef199ff68d86c397/visisipy-0.4.0-py3-none-any.whl", hash = "sha256:f49ea616aae62be5cd8f19a45084cf0a0221b3552e4e4662f8715198f94c417d", size = 106756, upload-time = "2026-04-17T18:45:06.195Z" },
 ]
 
 [[package]]
