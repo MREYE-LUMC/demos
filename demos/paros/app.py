@@ -11,7 +11,7 @@ def import_paros():
     return Eye, Camera, PhakicIOL, calculate_magnification
 
 
-ui.tags.style("table { display: block; }", "th, td { padding: 0px 10px 0px 0px; }")
+ui.tags.style(".container { padding-top: 1.5rem; } table { display: block; } th, td { padding: 0px 10px 0px 0px; }")
 
 with ui.card():
     ui.card_header("Eye model parameters")

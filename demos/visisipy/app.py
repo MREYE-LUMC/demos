@@ -160,6 +160,7 @@ model_parameters = {
 }
 
 app_ui = ui.page_fluid(
+    ui.head_content(ui.tags.style(".container-fluid {--bs-gutter-x: 0; --bs-gutter-y: 0;}")),
     ui.layout_sidebar(
         ui.sidebar(
             ui.accordion(
