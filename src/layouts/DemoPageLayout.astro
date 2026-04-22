@@ -1,6 +1,7 @@
 ---
 import MainLayout from "./MainLayout.astro";
 import MdrModal from "../components/MdrModal.astro";
+import ActionButton from "../components/ActionButton.astro";
 import { Icon } from "astro-icon/components";
 
 interface Props {
@@ -35,42 +36,27 @@ const appUrl = `/shinylive/${demoSlug}/`;
       <div class="flex flex-wrap gap-3 pt-1">
         {
           repoUrl && (
-            <a
+            <ActionButton
+              text="Check the code"
               href={repoUrl}
-              class="inline-flex items-center rounded-md border border-cyan-700 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
-              role="button"
-            >
-              <Icon
-                name="heroicons:code-bracket"
-                is:inline={true}
-                class="mr-2"
-              />
-              Check the code
-            </a>
+              icon="heroicons:code-bracket"
+            />
           )
         }
         {
           paperUrl && (
-            <a
+            <ActionButton
+              text="Read the paper"
               href={paperUrl}
-              class="inline-flex items-center rounded-md border border-cyan-700 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
-              role="button"
-            >
-              <Icon name="heroicons:newspaper" is:inline={true} class="mr-2" />
-              Read the paper
-            </a>
+              icon="heroicons:newspaper"
+            />
           )
         }
-        <a
+        <ActionButton
+          text="Edit the demo"
           href={editUrl}
-          class="inline-flex items-center rounded-md border border-cyan-700 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
-          role="button"
-          ><Icon
-            name="heroicons:pencil-square"
-            is:inline={true}
-            class="mr-2"
-          />Edit the demo</a
-        >
+          icon="heroicons:pencil-square"
+        />
       </div>
     </section>
 
