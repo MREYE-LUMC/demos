@@ -1,12 +1,20 @@
-import visisipy
+from __future__ import annotations
+
+from itertools import cycle
+from typing import TYPE_CHECKING
+
 import faicons
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
-
-from itertools import cycle
+import visisipy
 from matplotlib.colors import TABLEAU_COLORS, LogNorm
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
+
+if TYPE_CHECKING:
+    import numpy as np
+    from matplotlib.figure import Figure
+    from pandas.io.formats.style import Styler
+    from visisipy.refraction import FourierPowerVectorRefraction
 
 plt.rcParams["axes.grid"] = True
 plt.rcParams["grid.linestyle"] = ":"
@@ -26,7 +34,12 @@ model_parameters = {
     "Fields": [
         ui.card(
             ui.input_numeric(
-                "field_angle", "Field angle [°]", 0, min=0, max=90, step=5
+                "field_angle",
+                "Field angle [°]",
+                0,
+                min=0,
+                max=90,
+                step=5,
             ),
             ui.input_action_button("add_field", "Add field"),
         ),
@@ -39,7 +52,12 @@ model_parameters = {
         ),
         ui.input_action_button("clear_fields", "Clear all fields"),
         ui.input_numeric(
-            "wavelength", "Wavelength [μm]", 0.543, min=0.38, max=0.75, step=0.1
+            "wavelength",
+            "Wavelength [μm]",
+            0.543,
+            min=0.38,
+            max=0.75,
+            step=0.1,
         ),
     ],
     "Biometry": [
@@ -160,7 +178,9 @@ model_parameters = {
 }
 
 app_ui = ui.page_fluid(
-    ui.head_content(ui.tags.style(".container-fluid {--bs-gutter-x: 0; --bs-gutter-y: 0;}")),
+    ui.head_content(
+        ui.tags.style(".container-fluid {--bs-gutter-x: 0; --bs-gutter-y: 0;}"),
+    ),
     ui.layout_sidebar(
         ui.sidebar(
             ui.accordion(
@@ -177,7 +197,8 @@ app_ui = ui.page_fluid(
             ui.column(
                 6,
                 ui.card(
-                    ui.card_header("Raytrace result"), ui.output_plot("plot_raytrace")
+                    ui.card_header("Raytrace result"),
+                    ui.output_plot("plot_raytrace"),
                 ),
             ),
             ui.column(
@@ -191,7 +212,10 @@ app_ui = ui.page_fluid(
                 ui.card(
                     ui.card_header("Refraction by field"),
                     ui.output_table("table_properties"),
-                    "Note: J45 is always 0, because this demo does not support astigmatic eyes.",
+                    (
+                        "Note: J45 is always 0, because this demo does not support "
+                        "astigmatic eyes."
+                    ),
                 ),
             ),
         ),
@@ -211,21 +235,21 @@ app_ui = ui.page_fluid(
                 ),
             ),
         ),
-    )
+    ),
 )
 
 
-def server(input: Inputs, output: Outputs, session: Session):
+def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A002, ARG001
     fields = reactive.value(default_parameters["fields"])
 
-    def update_current_fields_selectize(fields):
+    def update_current_fields_selectize(fields: set[int]) -> None:
         ui.update_selectize(
             id="current_fields",
             choices={str(i): f"{i} °" for i in sorted(fields)},
             selected=[str(i) for i in sorted(fields)],
         )
 
-    def update_backend_settings():
+    def update_backend_settings() -> None:
         visisipy.update_settings(
             fields=[(0, y) for y in fields()],
             wavelengths=[input.wavelength()],
@@ -234,7 +258,7 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @reactive.effect
     @reactive.event(input.add_field, ignore_none=True)
-    def add_field():
+    def add_field() -> None:
         """Add a field to the system."""
         new_field = input.field_angle()
 
@@ -246,29 +270,29 @@ def server(input: Inputs, output: Outputs, session: Session):
 
     @reactive.effect
     @reactive.event(input.current_fields)
-    def remove_field():
-        """Remove a field from the system by removing it from the current_fields selectize."""
-        current_fields = set(int(f) for f in input.current_fields())
+    def remove_field() -> None:
+        """Remove a field from the and the current_fields selectize."""
+        current_fields = {int(f) for f in input.current_fields()}
 
         if current_fields != fields():
-            fields.set(set(sorted(current_fields)))
+            fields.set(current_fields)
             update_current_fields_selectize(current_fields)
 
     @reactive.effect
     @reactive.event(input.clear_fields, ignore_none=True)
-    def clear_fields():
+    def clear_fields() -> None:
         """Clear all fields except for the central field."""
         fields.set({0})
         update_current_fields_selectize({0})
 
     @reactive.effect
     @reactive.calc
-    def update_backend_settings_effect():
+    def update_backend_settings_effect() -> None:
         update_backend_settings()
 
     @reactive.effect
     @reactive.event(input.restore_defaults)
-    def reset_eye_model():
+    def reset_eye_model() -> None:
         geometry = default_parameters["geometry"]
 
         ui.update_numeric(id="axial_length", value=round(geometry.axial_length, 3))
@@ -277,7 +301,8 @@ def server(input: Inputs, output: Outputs, session: Session):
             value=geometry.cornea_thickness,
         )
         ui.update_numeric(
-            id="anterior_chamber_depth", value=geometry.anterior_chamber_depth
+            id="anterior_chamber_depth",
+            value=geometry.anterior_chamber_depth,
         )
         ui.update_numeric(
             id="lens_thickness",
@@ -357,7 +382,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         return model
 
     @reactive.calc
-    def raytrace():
+    def raytrace() -> list[tuple[np.ndarray, np.ndarray]]:
         # Depend on eye model, wavelength and fields
         eye_model()
         fields()
@@ -379,7 +404,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         return result
 
     @reactive.calc
-    def refraction():
+    def refraction() -> list[FourierPowerVectorRefraction]:
         # Depend on eye model, wavelength
         eye_model()
         input.wavelength()
@@ -397,13 +422,12 @@ def server(input: Inputs, output: Outputs, session: Session):
     # Outputs
 
     @render.plot
-    def plot_raytrace():
+    def plot_raytrace() -> Figure:
         # Depend on wavelength and fields
         fields()
         input.wavelength()
 
         model = eye_model()
-        optic = visisipy.backend.get_optic()
 
         fig, ax = plt.subplots()
 
@@ -418,7 +442,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         return fig
 
     @render.table
-    def table_properties():
+    def table_properties() -> Styler:
         # Depend on eye model and wavelength
         eye_model()
         input.wavelength()
@@ -428,7 +452,8 @@ def server(input: Inputs, output: Outputs, session: Session):
         for field in sorted(fields()):
             refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
             strehl_ratio = visisipy.analysis.strehl_ratio(
-                field_coordinate=(0, field), psf_type="fft"
+                field_coordinate=(0, field),
+                psf_type="fft",
             )
 
             data.append(
@@ -438,7 +463,7 @@ def server(input: Inputs, output: Outputs, session: Session):
                     "J0 [D]": refraction.J0,
                     "J45 [D]": refraction.J45,
                     "Strehl ratio": strehl_ratio,
-                }
+                },
             )
 
         # Reset field settings
@@ -448,15 +473,15 @@ def server(input: Inputs, output: Outputs, session: Session):
         return (
             df.style.format(precision=2)
             .hide(axis="index")
-            .set_table_styles([dict(selector="th", props=[("text-align", "left")])])
+            .set_table_styles([{"selector": "th", "props": [("text-align", "left")]}])
         )
 
     @render.ui
-    def central_refraction():
+    def central_refraction() -> str:
         return f"{refraction()[0].M:.2f} D"
 
     @render.plot
-    def plot_power_vectors():
+    def plot_power_vectors() -> Figure:
         fig, ax = plt.subplots()
 
         ax.plot(range(0, 90, 5), [r.M for r in refraction()], label="$M$")
@@ -470,14 +495,15 @@ def server(input: Inputs, output: Outputs, session: Session):
         return fig
 
     @render.plot
-    def plot_fft_psf():
+    def plot_fft_psf() -> Figure:
         # Depend on the eye model
         eye_model()
 
         fig, ax = plt.subplots()
 
         psf = visisipy.analysis.fft_psf(
-            field_coordinate=(0, 0), wavelength=input.wavelength()
+            field_coordinate=(0, 0),
+            wavelength=input.wavelength(),
         )
 
         im = ax.imshow(
@@ -490,7 +516,11 @@ def server(input: Inputs, output: Outputs, session: Session):
         ax.set_ylabel("Y [μm]")
 
         plt.colorbar(
-            im, ax=ax, use_gridspec=True, fraction=0.05, label="Relative intensity"
+            im,
+            ax=ax,
+            use_gridspec=True,
+            fraction=0.05,
+            label="Relative intensity",
         )
 
         return fig

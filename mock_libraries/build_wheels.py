@@ -1,9 +1,10 @@
 """Build wheels and copy them to the assets directory."""
 
-from subprocess import run
 from pathlib import Path
-from warnings import warn
 from shutil import copy2
+from subprocess import run
+from warnings import warn
+
 
 def build_wheel(path: Path) -> None:
     """
@@ -23,7 +24,9 @@ def get_wheel_path(path: Path) -> Path:
     if not wheels:
         raise FileNotFoundError("No wheel file found in the dist directory.")
     if len(wheels) > 1:
-        warn("Multiple wheel files found in the dist directory. Returning the newest one.")
+        warn(
+            "Multiple wheel files found in the dist directory. Returning the newest one.",
+        )
 
     # Sort wheels by modification time
     wheels.sort(key=lambda x: x.stat().st_mtime, reverse=True)
@@ -36,7 +39,9 @@ if __name__ == "__main__":
     path = Path(__file__).parent
     repository_root = path.parent
 
-    libraries = [d for d in path.iterdir() if d.is_dir() and (d / "pyproject.toml").exists()]
+    libraries = [
+        d for d in path.iterdir() if d.is_dir() and (d / "pyproject.toml").exists()
+    ]
 
     for library in libraries:
         build_wheel(library)

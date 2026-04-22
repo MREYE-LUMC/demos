@@ -1,17 +1,28 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from shiny import reactive
-from shiny.express import input, render, ui
-from dataclasses import dataclass
-from pandas import Series, DataFrame
+from shiny.express import input, render, ui  # noqa: A004
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from PAROS.fundscale import Camera, Eye, PhakicIOL
 
 
-def import_paros():
+def import_paros() -> tuple[type[Eye], type[Camera], type[PhakicIOL], Callable]:
     """Hack needed because importing sympy (via paros) breaks printing"""
-    from PAROS.fundscale import Eye, Camera, PhakicIOL, calculate_magnification
+    from PAROS.fundscale import Camera, Eye, PhakicIOL, calculate_magnification
 
     return Eye, Camera, PhakicIOL, calculate_magnification
 
 
-ui.tags.style(".container { padding-top: 1.5rem; } table { display: block; } th, td { padding: 0px 10px 0px 0px; }")
+ui.tags.style(
+    ".container { padding-top: 1.5rem; } "
+    "table { display: block; } "
+    "th, td { padding: 0px 10px 0px 0px; } ",
+)
 
 with ui.card():
     ui.card_header("Eye model parameters")
@@ -23,48 +34,83 @@ with ui.card():
             selected="Phakic",
         )
 
-    with ui.card():
-        with ui.layout_columns():
-            ui.input_numeric(
-                "r_corf", "Anterior corneal curvature (mm)", 7.72, min=0, step=0.1
-            )
-            ui.input_numeric(
-                "r_corb", "Posterior corneal curvature (mm)", 6.50, min=0, step=0.1
-            )
-            ui.input_numeric(
-                "r_lensf", "Anterior lens curvature (mm)", 10.2, min=0, step=0.5
-            )
-            ui.input_numeric(
-                "r_lensb", "Posterior lens curvature (mm)", 6.0, min=0, step=0.5
-            )
-            ui.input_numeric("d_cor", "Corneal thickness (mm)", 0.55, min=0, step=0.1)
-            ui.input_numeric(
-                "d_acd", "Anterior chamber depth (mm)", 3.05, min=0, step=0.1
-            )
-            ui.input_numeric(
-                "d_lens", "Crystalline lens thickness (mm)", 4, min=0, step=0.5
-            )
-            ui.input_numeric(
-                "d_vitr", "Vitreous chamber depth (mm)", 16.3203, min=0, step=0.5
-            )
-            ui.input_numeric(
-                "se", "Spherical eq. of refraction (D)", 0, min=-10, max=10, step=0.5
-            )
+    with ui.card(), ui.layout_columns():
+        ui.input_numeric(
+            "r_corf",
+            "Anterior corneal curvature (mm)",
+            7.72,
+            min=0,
+            step=0.1,
+        )
+        ui.input_numeric(
+            "r_corb",
+            "Posterior corneal curvature (mm)",
+            6.50,
+            min=0,
+            step=0.1,
+        )
+        ui.input_numeric(
+            "r_lensf",
+            "Anterior lens curvature (mm)",
+            10.2,
+            min=0,
+            step=0.5,
+        )
+        ui.input_numeric(
+            "r_lensb",
+            "Posterior lens curvature (mm)",
+            6.0,
+            min=0,
+            step=0.5,
+        )
+        ui.input_numeric("d_cor", "Corneal thickness (mm)", 0.55, min=0, step=0.1)
+        ui.input_numeric(
+            "d_acd",
+            "Anterior chamber depth (mm)",
+            3.05,
+            min=0,
+            step=0.1,
+        )
+        ui.input_numeric(
+            "d_lens",
+            "Crystalline lens thickness (mm)",
+            4,
+            min=0,
+            step=0.5,
+        )
+        ui.input_numeric(
+            "d_vitr",
+            "Vitreous chamber depth (mm)",
+            16.3203,
+            min=0,
+            step=0.5,
+        )
+        ui.input_numeric(
+            "se",
+            "Spherical eq. of refraction (D)",
+            0,
+            min=-10,
+            max=10,
+            step=0.5,
+        )
 
     with ui.panel_conditional("input.model_type == 'pIOL'"):
         ui.input_numeric("piol_power", "pIOL power", 9, step=0.5)
 
-    with ui.card():
-        with ui.layout_columns():
-            with ui.tooltip(placement="bottom"):
-                ui.input_action_button(
-                    "estimate_r_corb", "Estimate posterior corneal curvature"
-                )
-                "Calculate the posterior cornea curvature as 0.81 × anterior corneal curvature"
+    with ui.card(), ui.layout_columns():
+        with ui.tooltip(placement="bottom"):
+            ui.input_action_button(
+                "estimate_r_corb",
+                "Estimate posterior corneal curvature",
+            )
+            (
+                "Calculate the posterior cornea curvature as 0.81 × anterior corneal "  # noqa: RUF001
+                "curvature"
+            )
 
-            with ui.tooltip(placement="bottom"):
-                ui.input_action_button("fit_r_lensb", "Fit posterior lens curvature")
-                "Fit the lens back curvature to the specified spherical equivalent"
+        with ui.tooltip(placement="bottom"):
+            ui.input_action_button("fit_r_lensb", "Fit posterior lens curvature")
+            "Fit the lens back curvature to the specified spherical equivalent"
 
 with ui.card():
     ui.card_header("Camera parameters")
@@ -75,11 +121,11 @@ with ui.card():
         "<table>"
         "<tr><td><strong>Condenser lens power</strong></td><td>37.6 D</td></tr>"
         "<tr><td><strong>First order correction term</strong></td><td>0.035</td></tr>"
-        "</table>"
+        "</table>",
     )
 
 
-def phakic_eye(Eye):
+def phakic_eye(Eye: type[Eye]) -> Eye:
     phakic_geometry = {
         "R_corF": input.r_corf() * -(10**-3),
         "R_corB": input.r_corb() * -(10**-3),
@@ -101,7 +147,7 @@ def phakic_eye(Eye):
     )
 
 
-def pseudophakic_eye(Eye):
+def pseudophakic_eye(Eye: type[Eye]) -> Eye:
     pseudophakic_geometry = {
         "R_corF": input.r_corf() * -(10**-3),
         "R_corB": input.r_corb() * -(10**-3),
@@ -123,7 +169,7 @@ def pseudophakic_eye(Eye):
     )
 
 
-def piol_eye(Eye, PhakicIOL):
+def piol_eye(Eye: type[Eye], PhakicIOL: type[PhakicIOL]) -> Eye:
     piol_geometry = {
         "R_corF": input.r_corf() * -(10**-3),
         "R_corB": input.r_corb() * -(10**-3),
@@ -153,7 +199,7 @@ def piol_eye(Eye, PhakicIOL):
 
 
 @reactive.calc
-def eye_model():
+def eye_model() -> Eye:
     Eye, _, PhakicIOL, _ = import_paros()
 
     if input.model_type() == "Phakic":
@@ -170,13 +216,13 @@ def eye_model():
 
 @reactive.effect
 @reactive.event(input.estimate_r_corb)
-def update_r_corb():
+def update_r_corb() -> None:
     ui.update_numeric("r_corb", value=round(0.81 * input.r_corf(), 2))
 
 
 @reactive.effect
 @reactive.event(input.fit_r_lensb)
-def update_r_lensb():
+def update_r_lensb() -> None:
     eye = eye_model()
 
     lens_curvature, _ = eye.adjust_lens_back(input.se(), update_model=False)
@@ -187,8 +233,8 @@ with ui.card():
     ui.card_header("Result")
 
     @render.ui()
-    def calculate():
-        _, Camera, PhakicIOL, calculate_magnification = import_paros()
+    def calculate() -> ui.HTML:
+        _, Camera, _, calculate_magnification = import_paros()
         eye = eye_model()
 
         camera_f_cond = 0.02657
@@ -196,8 +242,9 @@ with ui.card():
 
         camera = Camera(F_cond=camera_f_cond, a1=camera_a1)
 
-        lens_back_curvature, glasses_curvature = eye.adjust_lens_back(
-            eye.geometry["SE"], update_model=True
+        eye.adjust_lens_back(
+            eye.geometry["SE"],
+            update_model=True,
         )
         magnification, *_ = calculate_magnification(eye, camera)
 
