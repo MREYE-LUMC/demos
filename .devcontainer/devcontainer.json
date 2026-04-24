@@ -18,5 +18,5 @@
       ]
     }
   },
-  "postCreateCommand": "npm i && uv sync && source .venv/bin/activate"
+  "postCreateCommand": "pnpm i && uv sync && source .venv/bin/activate"
 }
