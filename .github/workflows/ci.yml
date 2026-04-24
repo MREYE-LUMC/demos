@@ -20,14 +20,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: pnpm/action-setup@v6
+        name: Install pnpm
         with:
-          node-version: "24"
-          cache: "npm"
+          version: 10
+          cache: true
 
       - name: Lint
-        run: npx prettier --check .
+        run: pnpm exec prettier --check .
 
   ruff:
     runs-on: ubuntu-latest
