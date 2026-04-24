@@ -4,14 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "generate:shinylive": "node scripts/generate-shinylive-assets.ts",
-    "predev": "npm run generate:shinylive",
-    "prebuild": "npm run generate:shinylive",
+    "predev": "pnpm run generate:shinylive",
+    "prebuild": "pnpm run generate:shinylive",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "wrangler dev",
     "format": "prettier --write .",
-    "test": "npx playwright test"
+    "test": "playwright test"
   },
   "keywords": [],
   "author": "",
