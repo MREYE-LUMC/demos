@@ -27,7 +27,7 @@ jobs:
           cache: true
 
       - name: Lint
-        run: pnpm exec prettier --check .
+        run: pnpm dlx prettier --check .
 
   ruff:
     runs-on: ubuntu-latest
