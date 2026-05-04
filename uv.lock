@@ -815,7 +815,7 @@ requires-dist = [
     { name = "requests" },
     { name = "scipy" },
     { name = "seaborn" },
-    { name = "shiny", specifier = ">=1.6.0" },
+    { name = "shiny", specifier = ">=1.6.1" },
     { name = "shinylive", specifier = ">=0.8.3" },
     { name = "sympy" },
     { name = "tabulate" },
@@ -1520,7 +1520,7 @@ wheels = [
 
 [[package]]
 name = "shiny"
-version = "1.6.0"
+version = "1.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
@@ -1545,9 +1545,9 @@ dependencies = [
     { name = "watchfiles", marker = "sys_platform != 'emscripten'" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ee/f2/d75ad19f6fa0cb244ff04990c61aa28d88300c69d6220dec3ffb8f3e29eb/shiny-1.6.0.tar.gz", hash = "sha256:54bec20a9cfde0dd3a36a9873863be7dbb4729a33fe7abc9ad9488df6efd6f58", size = 5079489, upload-time = "2026-03-20T20:42:58.2Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3c/09/cbb28b11ac6556aa654c2cbc403aa75c89844e699d4f45897743c91ea139/shiny-1.6.1.tar.gz", hash = "sha256:f58450c36faffc6ca27773331a0007d9455d7c396360257a4c4df924162f5f69", size = 5112401, upload-time = "2026-05-01T16:01:28.358Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/30/d442d84e873786cd31b4bdf69b5981119953ebcbdeaf1988c98bf5a9703b/shiny-1.6.0-py3-none-any.whl", hash = "sha256:8e8ae840f565ecf4fb856a843fdc2d73c39e8ffe78141ccc29d802ecfce3657b", size = 3908742, upload-time = "2026-03-20T20:42:56.535Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/8c/330a7c763626c71214c1f6dfd0a28af0deef32ae5dda1faf19fbe0a16a24/shiny-1.6.1-py3-none-any.whl", hash = "sha256:47822d6fdbe54d61cd5a369549655bf69e2a8160a488244d6e76aa81d133bf79", size = 3917952, upload-time = "2026-05-01T16:01:26.435Z" },
 ]
 
 [[package]]
