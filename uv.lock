@@ -816,7 +816,7 @@ requires-dist = [
     { name = "scipy" },
     { name = "seaborn" },
     { name = "shiny", specifier = ">=1.6.1" },
-    { name = "shinylive", specifier = ">=0.8.3" },
+    { name = "shinylive", specifier = ">=0.8.7" },
     { name = "sympy" },
     { name = "tabulate" },
     { name = "visisipy", specifier = "==0.4.0" },
@@ -1565,7 +1565,7 @@ wheels = [
 
 [[package]]
 name = "shinylive"
-version = "0.8.6"
+version = "0.8.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
@@ -1576,9 +1576,9 @@ dependencies = [
     { name = "shiny" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9e/e1/7086151f4d62c046403234d994a7fa259fa55fb38c38132758fb74c83db3/shinylive-0.8.6.tar.gz", hash = "sha256:b6bdc1926417ea1393902eb0819d4beca74b3d257e9f65c14afe4a54b18cdc77", size = 29549, upload-time = "2026-03-25T18:20:03.226Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/ec/dfc69f8835dce3bf4ae4da4cb96655e3ffd7b6131ccd6be8866cd4c63e4a/shinylive-0.8.7.tar.gz", hash = "sha256:37b5e6ac010d07e74f6f7aa67585afc5214bb7e0f91ed6f54b869f366b510755", size = 29542, upload-time = "2026-05-01T20:19:02.197Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/3c/cbcd11ce1240d76838cde05c7da63264378b9e48c3080cf63a2b440415ba/shinylive-0.8.6-py3-none-any.whl", hash = "sha256:e81e6e710c3aa942dc64ec88161eb2e34571eaf58b87766b7eb8c50c7739c5d5", size = 29424, upload-time = "2026-03-25T18:20:02.324Z" },
+    { url = "https://files.pythonhosted.org/packages/69/8e/8702ff737c103a7bc95460a9338afc93884a0adb906d44a3549d50391355/shinylive-0.8.7-py3-none-any.whl", hash = "sha256:b0b553f5bced452f3fa1b84f18f9e9bd6b2bda6db7117b82cc28a9810fc02855", size = 29424, upload-time = "2026-05-01T20:19:01.224Z" },
 ]
 
 [[package]]
