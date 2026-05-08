@@ -184,10 +184,7 @@ app_ui = ui.page_fluid(
     ui.layout_sidebar(
         ui.sidebar(
             ui.accordion(
-                *(
-                    ui.accordion_panel(title, settings)
-                    for title, settings in model_parameters.items()
-                ),
+                *(ui.accordion_panel(title, settings) for title, settings in model_parameters.items()),
                 id="eye_model",
             ),
             ui.input_action_button("restore_defaults", "Restore defaults"),
@@ -212,10 +209,7 @@ app_ui = ui.page_fluid(
                 ui.card(
                     ui.card_header("Refraction by field"),
                     ui.output_table("table_properties"),
-                    (
-                        "Note: J45 is always 0, because this demo does not support "
-                        "astigmatic eyes."
-                    ),
+                    ("Note: J45 is always 0, because this demo does not support astigmatic eyes."),
                 ),
             ),
         ),
@@ -409,10 +403,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         eye_model()
         input.wavelength()
 
-        refractions = [
-            visisipy.analysis.refraction(field_coordinate=(0, y))
-            for y in range(0, 90, 5)
-        ]
+        refractions = [visisipy.analysis.refraction(field_coordinate=(0, y)) for y in range(0, 90, 5)]
 
         # Reset field settings
         visisipy.update_settings()

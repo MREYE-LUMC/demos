@@ -1,2 +1,2 @@
-paros >= 1.0.1
+paros >= 2.0.0
 sympy
