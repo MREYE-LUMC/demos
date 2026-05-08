@@ -810,7 +810,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "optiland", specifier = "==0.6.0" },
     { name = "pandas" },
-    { name = "paros", specifier = ">=1.0.1" },
+    { name = "paros", specifier = ">=2.0.0" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "scipy" },
@@ -1118,7 +1118,7 @@ wheels = [
 
 [[package]]
 name = "paros"
-version = "1.0.2"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -1127,9 +1127,9 @@ dependencies = [
     { name = "scipy" },
     { name = "sympy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/6b/296aedc25fa322e8ee97bda31f5191e28eaa0fc82125aca004bf6bd3f2a3/paros-1.0.2.tar.gz", hash = "sha256:402de7f86ea103c586b903b72958566a662a0ba49babb0a1465842d50579e9a7", size = 218655, upload-time = "2026-02-03T08:00:04.021Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/44/dee577a8a06e1d82accf049a211493b40e727295eee149928fdd3bd5a86f/paros-2.0.0.tar.gz", hash = "sha256:91a494f0b2f5df8556793e73b5ba2b7788230b01a6633ef64c994334e667b5db", size = 211290, upload-time = "2026-05-08T07:52:43.421Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a5/a6/301102ae3e092b36d2fb376175e1534e0eeabf33dbb4bed8c53dc53fde21/paros-1.0.2-py3-none-any.whl", hash = "sha256:0a73e5a3d7822ddc8b8bcca17e412eb4485bec5fc994b1978b3e9f8141491732", size = 14759, upload-time = "2026-02-03T08:00:04.929Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/3b/09064f7d83fe2ed1f06a2b0d9236d8b98b2413cde7dd0df0925231fcd02f/paros-2.0.0-py3-none-any.whl", hash = "sha256:7a46c1cc509274a54bf7e8e542331bf2e8a2cef80651c235fbab1b57a53ef207", size = 16031, upload-time = "2026-05-08T07:52:42.301Z" },
 ]
 
 [[package]]

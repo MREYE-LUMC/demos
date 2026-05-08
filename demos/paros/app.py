@@ -1,22 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from PAROS.fundscale import Camera, Eye, EyeGeometry, PhakicIOL, calculate_magnification
 from shiny import reactive
 from shiny.express import input, render, ui  # noqa: A004
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from PAROS.fundscale import Camera, Eye, PhakicIOL
-
-
-def import_paros() -> tuple[type[Eye], type[Camera], type[PhakicIOL], Callable]:
-    """Hack needed because importing sympy (via paros) breaks printing"""
-    from PAROS.fundscale import Camera, Eye, PhakicIOL, calculate_magnification
-
-    return Eye, Camera, PhakicIOL, calculate_magnification
-
 
 ui.tags.style(
     ".container { padding-top: 1.5rem; } "
@@ -121,66 +107,67 @@ with ui.card():
         "<table>"
         "<tr><td><strong>Condenser lens power</strong></td><td>37.6 D</td></tr>"
         "<tr><td><strong>First order correction term</strong></td><td>0.035</td></tr>"
+        "<tr><td><strong>Pixel density</strong></td><td>100 px/mm</td></tr>"
         "</table>",
     )
 
 
-def phakic_eye(Eye: type[Eye]) -> Eye:
-    phakic_geometry = {
-        "R_corF": input.r_corf() * -(10**-3),
-        "R_corB": input.r_corb() * -(10**-3),
-        "R_lensF": input.r_lensf() * -(10**-3),
-        "R_lensB": input.r_lensb() * 10**-3,
-        "D_cor": input.d_cor() * 10**-3,
-        "D_ACD": input.d_acd() * 10**-3,
-        "D_lens": input.d_lens() * 10**-3,
-        "D_vitr": input.d_vitr() * 10**-3,
-        "SE": input.se(),
-    }
+def phakic_eye() -> Eye:
+    phakic_geometry = EyeGeometry(
+        R_corF=input.r_corf() * -1e-3,
+        R_corB=input.r_corb() * -1e-3,
+        R_lensF=input.r_lensf() * -1e-3,
+        R_lensB=input.r_lensb() * 1e-3,
+        D_cor=input.d_cor() * 1e-3,
+        D_ACD=input.d_acd() * 1e-3,
+        D_lens=input.d_lens() * 1e-3,
+        D_vitr=input.d_vitr() * 1e-3,
+        SE=input.se(),
+    )
 
     # Define a phakic eye model
     return Eye(
         name="phakic",
         geometry=phakic_geometry,
         NType="Navarro",
-        refraction=phakic_geometry["SE"],
+        refraction=phakic_geometry.get("SE"),
     )
 
 
-def pseudophakic_eye(Eye: type[Eye]) -> Eye:
-    pseudophakic_geometry = {
-        "R_corF": input.r_corf() * -(10**-3),
-        "R_corB": input.r_corb() * -(10**-3),
-        "R_lensF": input.r_lensf() * -(10**-3),
-        "R_lensB": input.r_lensb() * 10**-3,
-        "D_cor": input.d_cor() * 10**-3,
-        "D_ACD": input.d_acd() * 10**-3,
-        "D_lens": input.d_lens() * 10**-3,
-        "D_vitr": input.d_vitr() * 10**-3,
-        "SE": input.se(),
-    }
+def pseudophakic_eye() -> Eye:
+    pseudophakic_geometry = EyeGeometry(
+        R_corF=input.r_corf() * -1e-3,
+        R_corB=input.r_corb() * -1e-3,
+        R_lensF=input.r_lensf() * -1e-3,
+        R_lensB=input.r_lensb() * 1e-3,
+        D_cor=input.d_cor() * 1e-3,
+        D_ACD=input.d_acd() * 1e-3,
+        D_lens=input.d_lens() * 1e-3,
+        D_vitr=input.d_vitr() * 1e-3,
+        SE=input.se(),
+    )
 
     return Eye(
         name="IOL",
         geometry=pseudophakic_geometry,
         model_type="VughtIOL",
         NType="VughtIOL",
-        refraction=pseudophakic_geometry["SE"],
+        refraction=pseudophakic_geometry.get("SE"),
     )
 
 
-def piol_eye(Eye: type[Eye], PhakicIOL: type[PhakicIOL]) -> Eye:
-    piol_geometry = {
-        "R_corF": input.r_corf() * -(10**-3),
-        "R_corB": input.r_corb() * -(10**-3),
-        "R_lensF": input.r_lensf() * -(10**-3),
-        "R_lensB": input.r_lensb() * 10**-3,
-        "D_cor": input.d_cor() * 10**-3,
-        "D_ACD": input.d_acd() * 10**-3,
-        "D_lens": input.d_lens() * 10**-3,
-        "D_vitr": input.d_vitr() * 10**-3,
-        "SE": input.se(),
-    }
+def piol_eye() -> Eye:
+    piol_geometry = EyeGeometry(
+        R_corF=input.r_corf() * -1e-3,
+        R_corB=input.r_corb() * -1e-3,
+        R_lensF=input.r_lensf() * -1e-3,
+        R_lensB=input.r_lensb() * 1e-3,
+        D_cor=input.d_cor() * 1e-3,
+        D_ACD=input.d_acd() * 1e-3,
+        D_lens=input.d_lens() * 1e-3,
+        D_vitr=input.d_vitr() * 1e-3,
+        SE=input.se(),
+    )
 
     piol_data = PhakicIOL(
         power=input.piol_power(),
@@ -193,23 +180,21 @@ def piol_eye(Eye: type[Eye], PhakicIOL: type[PhakicIOL]) -> Eye:
         name="pIOL",
         geometry=piol_geometry,
         NType="Navarro",
-        refraction=piol_geometry["SE"],
+        refraction=piol_geometry.get("SE"),
         pIOL=piol_data,
     )
 
 
 @reactive.calc
 def eye_model() -> Eye:
-    Eye, _, PhakicIOL, _ = import_paros()
-
     if input.model_type() == "Phakic":
-        return phakic_eye(Eye)
+        return phakic_eye()
 
     if input.model_type() == "Pseudophakic":
-        return pseudophakic_eye(Eye)
+        return pseudophakic_eye()
 
     if input.model_type() == "pIOL":
-        return piol_eye(Eye, PhakicIOL)
+        return piol_eye()
 
     raise ValueError(f"{input.model_type()} is not supported")
 
@@ -234,13 +219,12 @@ with ui.card():
 
     @render.ui()
     def calculate() -> ui.HTML:
-        _, Camera, _, calculate_magnification = import_paros()
         eye = eye_model()
 
         camera_f_cond = 0.02657
         camera_a1 = 0.03481
 
-        camera = Camera(F_cond=camera_f_cond, a1=camera_a1)
+        camera = Camera(F_cond=camera_f_cond, a1=camera_a1, pixel_density=100)
 
         eye.adjust_lens_back(
             eye.geometry["SE"],
@@ -248,4 +232,4 @@ with ui.card():
         )
         magnification, *_ = calculate_magnification(eye, camera)
 
-        return ui.markdown(f"**Magnification:** {abs(magnification):.2f}")
+        return ui.markdown(f"**Magnification:** {abs(magnification):.0f} px/mm")
