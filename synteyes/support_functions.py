@@ -171,9 +171,9 @@ def create_retina_curvature(synteyes_jos, mu_retina, cov_retina):
     synteyes_jos["ell_rz"] = cond_sgm[:, 2]
     return synteyes_jos
 
-def create_mgmm_data(mu_c0,mu_c1,cov_c0,cov_c1,w_c0,w_c1,n):
+def create_mgmm_data(mu_c0,mu_c1,cov_c0,cov_c1,w_c0,w_c1,n, rng=None):
     """
-    Create N data points using scipy library.
+    Create N data points using numpy library.
 
     Parameters:
     mu_c0 (np.ndarray): The mean vector of the first Multivariate Gaussian Mixture Model component.
@@ -187,9 +187,23 @@ def create_mgmm_data(mu_c0,mu_c1,cov_c0,cov_c1,w_c0,w_c1,n):
     Returns:
     np.ndarray: Dataset of N points from the Multivariate Gaussian Mixture Model.
     """
-    comp0 = stats.multivariate_normal.rvs(mu_c0, cov_c0,size=n)
-    comp1 = stats.multivariate_normal.rvs(mu_c1, cov_c1,size=n)
-    data = w_c0*comp0 + w_c1*comp1
+    if rng is None:
+        rng = np.random.default_rng()
+
+    n_components = 2
+    counts = rng.multinomial(n,[w_c0,w_c1])
+    data = []
+    labels = []
+
+    mu_all = [mu_c0, mu_c1]
+    cov_all = [cov_c0, cov_c1]
+
+    for k in range(n_components):
+        samples = rng.multivariate_normal(mu_all[k], cov_all[k], size=counts[k])
+        data.append(samples)
+        labels.extend([k] * counts[k])
+    data = np.vstack(data)
+    labels = np.array(labels)
     return data
 
 def nearest_psd(matrix):
