@@ -219,7 +219,7 @@ app_ui = ui.page_fluid(
         ),
         ui.row(
             ui.column(
-                8,
+                4,
                 ui.card(
                     ui.card_header("Fourier power vector as function of eccentricity"),
                     ui.output_plot("plot_power_vectors"),
@@ -230,6 +230,13 @@ app_ui = ui.page_fluid(
                 ui.card(
                     ui.card_header("Central FFT PSF"),
                     ui.output_plot("plot_fft_psf", width="90%"),
+                ),
+            ),
+            ui.column(
+                4,
+                ui.card(
+                    ui.card_header("FFT MTF"),
+                    ui.output_plot("plot_fft_mtf", width="90%"),
                 ),
             ),
         ),
@@ -550,6 +557,56 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
             fraction=0.05,
             label="Relative intensity",
         )
+
+        return fig
+
+    @render.plot
+    def plot_fft_mtf() -> Figure:
+        # Depend on the eye model, wavelength and fields
+        eye_model()
+        fields()
+        wavelength = input.wavelength()
+
+        fig, ax = plt.subplots()
+
+        mtf_result = visisipy.analysis.fft_mtf(
+            wavelength=wavelength,
+            sampling=128,
+        )
+
+        # Get the maximum cutoff frequency across all fields for setting the x-axis limit
+        max_freq = 0
+
+        for mtfs in mtf_result.values():
+            max_freq_field = max(
+                mtfs.tangential.index[(mtfs.tangential - 1e-2).abs().argmin()],
+                mtfs.sagittal.index[(mtfs.sagittal - 1e-2).abs().argmin()],
+            )
+
+            if max_freq_field > max_freq:
+                max_freq = max_freq_field
+
+        for (field, mtfs), color in zip(mtf_result.items(), cycle(TABLEAU_COLORS)):
+            ax.plot(
+                mtfs.sagittal.index,
+                mtfs.sagittal,
+                color=color,
+                label=f"{field} - Sagittal",
+            )
+            ax.plot(
+                mtfs.tangential.index,
+                mtfs.tangential,
+                color=color,
+                ls="--",
+                label=f"{field} - Tangential",
+            )
+
+        ax.set_xlabel("Spatial frequency [cycles/mm]")
+        ax.set_xlim(0, max_freq * 1.1)
+        ax.set_ylabel("MTF")
+        ax.set_title("FFT MTF")
+        ax.legend()
+        ax.grid(ls=":")
 
         return fig
 
