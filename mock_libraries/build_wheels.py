@@ -39,7 +39,9 @@ if __name__ == "__main__":
     path = Path(__file__).parent
     repository_root = path.parent
 
-    libraries = [d for d in path.iterdir() if d.is_dir() and (d / "pyproject.toml").exists()]
+    libraries = [
+        d for d in path.iterdir() if d.is_dir() and (d / "pyproject.toml").exists()
+    ]
 
     for library in libraries:
         build_wheel(library)
