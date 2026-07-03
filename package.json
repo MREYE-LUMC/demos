@@ -1,16 +1,35 @@
 {
-  "name": "demos",
-  "version": "1.0.0",
+  "name": "mreye-demos",
   "description": "Interactive demos for research projects of the MReye group.",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "npx playwright test"
+    "preinstall": "npx only-allow pnpm",
+    "generate:shinylive": "node scripts/generate-shinylive-assets.ts",
+    "predev": "pnpm run generate:shinylive",
+    "prebuild": "pnpm run generate:shinylive",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler dev",
+    "format": "prettier --write .",
+    "test": "playwright test"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "dependencies": {
+    "@astrojs/mdx": "^6.0.1",
+    "astro": "^6.4.2",
+    "astro-icon": "^1.1.5"
+  },
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
     "@playwright/test": "^1.57.0",
-    "@types/node": "^24.10.1"
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^24.10.1",
+    "prettier": "^3.8.3",
+    "tailwindcss": "^4.2.2",
+    "vite": "^7.3.2",
+    "wrangler": "^4.83.0"
   }
 }

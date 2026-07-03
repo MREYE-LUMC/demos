@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Use environment variable for base URL (deployed site) or fallback to localhost
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:8000";
+// Use environment variable for base URL (deployed site) or fallback to local Astro preview
+const port = process.env.PORT ? parseInt(process.env.PORT) : 4322;
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`;
 const isRemote = baseURL.startsWith("https://");
 
 /**
@@ -42,10 +43,10 @@ export default defineConfig({
   ...(isRemote
     ? {}
     : {
-      webServer: {
-        command: "python -m http.server 8000 --directory _site",
-        url: "http://localhost:8000",
-        reuseExistingServer: !process.env.CI,
-      },
-    }),
+        webServer: {
+          command: `npx astro preview --port ${port}`,
+          port: port,
+          reuseExistingServer: !process.env.CI,
+        },
+      }),
 });

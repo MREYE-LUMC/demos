@@ -1,0 +1,20 @@
+---
+interface Props {
+  title: string;
+  type?: "warning" | "note" | "info";
+}
+
+const { title, type = "warning" } = Astro.props;
+const calloutStyles = {
+  warning: "border-amber-300 bg-amber-50/80 text-amber-950",
+  note: "border-sky-300 bg-sky-50/80 text-sky-950",
+  info: "border-emerald-300 bg-emerald-50/80 text-emerald-950"
+};
+---
+
+<aside class={`my-4 rounded-lg border-l-4 px-4 py-3 ${calloutStyles[type]}`}>
+  <strong class="mb-2 inline-block text-sm font-semibold uppercase tracking-wide">{title}</strong>
+  <div class="text-sm leading-6">
+    <slot />
+  </div>
+</aside>

@@ -1,0 +1,22 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  text: string;
+  href: string;
+  icon?: string;
+}
+
+const { text, href, icon } = Astro.props;
+---
+
+<a
+  href={href}
+  class="inline-flex items-center rounded-md border border-cyan-700 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
+  role="button"
+>
+  {icon && (
+    <Icon name={icon} is:inline={true} class="mr-2" />
+  )}
+  {text}
+</a>
