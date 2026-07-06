@@ -104,5 +104,5 @@ setupDemoTest(
   "/synteyes/",
   "Create 3D SyntEyes",
   "Create 3D SyntEyes",
-  ["Enter the amount of eyes and click Generate SyntEyes."]
+  ["Enter the amount of eyes and click Generate SyntEyes."],
 );
