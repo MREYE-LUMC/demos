@@ -1,14 +1,25 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-import json
-from pathlib import Path
-
 from shiny import reactive
-from shiny.express import input, render, ui
+from shiny.express import input, render, ui  # noqa: A004
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from htmltools import HTML, Tag
+    from numpy.typing import NDArray
 
 
-def conditional_sgm(mu, cov, known_indices, known_values):
+def conditional_sgm(
+    mu: NDArray, cov: NDArray, known_indices: list[int], known_values: NDArray | float
+) -> tuple[NDArray, NDArray]:
     """Compute the conditional Gaussian distribution.
 
     Parameters
@@ -27,7 +38,7 @@ def conditional_sgm(mu, cov, known_indices, known_values):
     tuple[np.ndarray, np.ndarray]
         Conditional mean vector and conditional covariance matrix.
     """
-    unknown_indices = [i for i in range(len(mu)) if i not in known_indices]
+    unknown_indices = [i for i in range(len(mu)) if i not in set(known_indices)]
 
     mu_known = mu[known_indices]
     mu_unknown = mu[unknown_indices]
@@ -50,7 +61,7 @@ def conditional_sgm(mu, cov, known_indices, known_values):
     return conditional_mean, conditional_cov
 
 
-def zernike_index(order):
+def zernike_index(order: int) -> NDArray:
     """Create Zernike polynomial (n, m) index pairs.
 
     Parameters
@@ -64,15 +75,16 @@ def zernike_index(order):
         Array of shape ``(k, 2)`` containing ``(n, m)`` pairs.
     """
     idx = np.array([])
-    for n in range(0, order + 1):
+    for n in range(order + 1):
         for m in range(-1 * n, n + 1, 2):
             idx = np.append(idx, [n, m])
 
-    idx = np.reshape(idx, (int(len(idx) / 2), 2))
-    return idx
+    return np.reshape(idx, (int(len(idx) / 2), 2))
 
 
-def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
+def convert_to_single_orig_synteyes(
+    eigencornea: NDArray, conv_ec: NDArray, avg_ec: NDArray, lens_za: NDArray
+) -> pd.DataFrame:
     """Convert one eigencornea sample to SyntEyes format.
 
     Parameters
@@ -101,7 +113,7 @@ def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
 
     synteyes_array = np.append(eigencornea[range(6)], zerniken)
 
-    synteyes = dict(CCT=synteyes_array[96])
+    synteyes = {"CCT": synteyes_array[96]}
     synteyes["ACD"] = synteyes_array[0]
     synteyes["LT"] = synteyes_array[1]
     synteyes["AxialLength"] = synteyes_array[2]
@@ -166,7 +178,9 @@ def convert_to_single_orig_synteyes(eigencornea, conv_ec, avg_ec, lens_za):
     return pd.DataFrame.from_dict(synteyes)
 
 
-def create_retina_curvature(synteyes_orig, mu_retina, cov_retina):
+def create_retina_curvature(
+    synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov_retina: NDArray
+) -> pd.DataFrame:
     """Add retinal curvature values conditioned on axial length.
 
     Parameters
@@ -207,7 +221,15 @@ def create_retina_curvature(synteyes_orig, mu_retina, cov_retina):
     return synteyes_orig
 
 
-def create_mgmm_data(mu_c0, mu_c1, cov_c0, cov_c1, w_c0, w_c1, n):
+def create_mgmm_data(
+    mu_c0: NDArray,
+    mu_c1: NDArray,
+    cov_c0: NDArray,
+    cov_c1: NDArray,
+    w_c0: float,
+    w_c1: float,
+    n: int,
+) -> NDArray:
     """Sample from a weighted two-component Gaussian mixture model.
 
     Parameters
@@ -237,7 +259,7 @@ def create_mgmm_data(mu_c0, mu_c1, cov_c0, cov_c1, w_c0, w_c1, n):
     return w_c0 * comp0 + w_c1 * comp1
 
 
-def nearest_psd(matrix):
+def nearest_psd(matrix: NDArray) -> NDArray:
     """Project a matrix to a positive semi-definite approximation.
 
     Parameters
@@ -254,7 +276,7 @@ def nearest_psd(matrix):
     return eigvec @ np.diag(np.maximum(eigval, 10**-6)) @ eigvec.T
 
 
-def generate_synteyes(n):
+def generate_synteyes(n: int) -> pd.DataFrame:
     eigen_data = create_mgmm_data(
         mu_orig[0],
         mu_orig[1],
@@ -327,13 +349,12 @@ COLUMN_HINTS = {
 
 PREFIX_HINTS = {
     "CorAntZ": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
-    "CorPostZ": "Zernikes of posterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+    "CorPostZ": "Zernikes of posterior corneal surface "
+    "(mm, 8th order, 6.5 mm diameter)",
     "LensAntZ": "Zernikes of anterior lens surface (mm, 5th order, 5.5 mm diameter)",
 }
 
-ui.tags.style(
-    "table { display: block; overflow-x: auto; }", "th, td { white-space: nowrap; }"
-)
+ui.tags.style(".container { padding-top: 1.5rem; }")
 ui.tags.script(
     f"""
 (() => {{
@@ -349,7 +370,7 @@ ui.tags.script(
     }};
 
     const applyColumnHints = () => {{
-        document.querySelectorAll("table.dataframe thead th").forEach((th) => {{
+        document.querySelectorAll("shiny-data-frame thead th").forEach((th) => {{
             const columnName = (th.textContent || "").trim();
             if (!columnName) return;
             const hint = hintForColumn(columnName);
@@ -372,12 +393,12 @@ with ui.card():
         ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
 
-        def conditional_download_button(button):
+        def conditional_download_button(button: render.download) -> render.ui:
             fallback = ui.input_action_button(
                 button.output_id + "_fallback", label=button.label, disabled=True
             )
 
-            def wrapper():
+            def wrapper() -> Tag | render.download:
                 if input.generate() == 0 or input.n_eyes() == 0:
                     return fallback
 
@@ -389,13 +410,13 @@ with ui.card():
 
         @conditional_download_button
         @render.download(filename="synteyes.csv", label="Download CSV")
-        def download_csv():
+        def download_csv() -> Generator[str, Any, None]:
             yield generated_data().to_csv(index=False)
 
         @conditional_download_button
         @render.download(filename="synteyes.json", label="Download JSON")
-        def download_json():
-            def _json_default(obj):
+        def download_json() -> Generator[str, Any, None]:
+            def _json_default(obj: Any) -> Any:  # noqa: ANN401
                 if isinstance(obj, np.generic):
                     return obj.item()
                 if isinstance(obj, np.ndarray):
@@ -410,7 +431,7 @@ with ui.card():
 
 @reactive.calc
 @reactive.event(input.generate)
-def generated_data():
+def generated_data() -> pd.DataFrame:
     n = int(input.n_eyes())
     if n < 1:
         raise ValueError("Number of SyntEyes must be at least 1")
@@ -419,7 +440,7 @@ def generated_data():
 
 @reactive.calc
 @reactive.event(input.generate_retina)
-def generated_retina_curvature():
+def generated_retina_curvature() -> pd.DataFrame:
     al = float(input.single_axial_length())
     conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(
         MU_AL_RADII, COV_AL_RADII, [0], al
@@ -440,7 +461,7 @@ def generated_retina_curvature():
 
 
 @reactive.calc
-def displayed_data():
+def displayed_data() -> pd.DataFrame:
     df = generated_data()
     if not input.compact_view():
         return df
@@ -471,7 +492,7 @@ with ui.card():
             )
 
     @render.ui
-    def result_summary():
+    def result_summary() -> HTML:
         if input.generate() == 0:
             return ui.markdown(
                 "Enter the amount of eyes and click **Generate SyntEyes**."
@@ -482,12 +503,13 @@ with ui.card():
         mode_label = "compact" if input.compact_view() else "expanded"
         return ui.markdown(
             f"Generated **{len(df)}** SyntEyes with **{df.shape[1]}** total columns. "
-            f"Showing **{shown_df.shape[1]}** columns in **{mode_label}** mode (first 20 rows)."
+            f"Showing **{shown_df.shape[1]}** columns in **{mode_label}** mode "
+            "(first 20 rows)."
         )
 
-    @render.table
-    def result_table():
-        return displayed_data().head(20)
+    @render.data_frame
+    def result_table() -> render.DataGrid:
+        return render.DataGrid(displayed_data().head(20))
 
 
 with ui.card():
@@ -503,10 +525,10 @@ with ui.card():
         ui.input_action_button("generate_retina", "Generate Retina Radii")
 
     @render.ui
-    def retina_result():
-        @render.table
-        def retina_result_table():
-            return generated_retina_curvature().round(2)
+    def retina_result() -> render.data_frame | HTML:
+        @render.data_frame
+        def retina_result_table() -> render.DataGrid:
+            return render.DataGrid(generated_retina_curvature().round(2))
 
         if input.generate_retina() == 0:
             return ui.markdown(
