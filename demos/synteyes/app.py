@@ -390,7 +390,9 @@ ui.tags.script(
 with ui.card():
     ui.card_header("Create 3D SyntEyes")
     with ui.layout_columns(class_="align-items-end"):
-        ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, step=1)
+        ui.input_numeric(
+            "n_eyes", "Number of 3D SyntEyes", value=10, min=1, max=1000, step=1
+        )
         ui.input_action_button("generate", "Generate SyntEyes")
 
         def conditional_download_button(button: render.download) -> render.ui:
@@ -519,7 +521,8 @@ with ui.card():
             "single_axial_length",
             "Axial length of the eye [mm]",
             value=24.0,
-            min=0.1,
+            min=20.0,
+            max=30.0,
             step=0.1,
         )
         ui.input_action_button("generate_retina", "Generate Retina Radii")
