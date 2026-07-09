@@ -347,6 +347,38 @@ COLUMN_HINTS = {
     "ret_rz": "Retinal ellipsoid radius along z (mm)",
 }
 
+SECTIONS = ("biometry", "cornea", "lens", "retina", "other")
+
+BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AxialLength", "VD", "Pupil"}
+LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp", "num5", "nl"}
+RETINA_COLUMNS = {"RT", "Rret", "ret_rx", "ret_ry", "ret_rz"}
+
+
+def section_for_column(column: str) -> str:
+    if column in BIOMETRY_COLUMNS:
+        return "biometry"
+    if column.startswith("CorAntZ") or column.startswith("CorPostZ"):
+        return "cornea"
+    if column.startswith("LensAntZ") or column in LENS_COLUMNS:
+        return "lens"
+    if column in RETINA_COLUMNS:
+        return "retina"
+    return "other"
+
+
+def nest_synteyes_record(record: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    nested = {section: {} for section in SECTIONS}
+    for column, value in record.items():
+        nested[section_for_column(column)][column] = value
+    return nested
+
+
+def flatten_synteyes_record(record: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    flattened: dict[str, Any] = {}
+    for section in SECTIONS:
+        flattened.update(record.get(section, {}))
+    return flattened
+
 PREFIX_HINTS = {
     "CorAntZ": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
     "CorPostZ": "Zernikes of posterior corneal surface "
@@ -413,7 +445,7 @@ with ui.card():
         @conditional_download_button
         @render.download(filename="synteyes.csv", label="Download CSV")
         def download_csv() -> Generator[str, Any, None]:
-            yield generated_data().to_csv(index=False)
+            yield generated_data_flat().to_csv(index=False)
 
         @conditional_download_button
         @render.download(filename="synteyes.json", label="Download JSON")
@@ -427,23 +459,38 @@ with ui.card():
                     f"Object of type {type(obj).__name__} is not JSON serializable"
                 )
 
-            records = generated_data().to_dict(orient="records")
+            records = generated_data_nested()
             yield json.dumps(records, separators=(",", ":"), default=_json_default)
 
 
 @reactive.calc
 @reactive.event(input.generate)
-def generated_data() -> pd.DataFrame:
+def generated_data_nested() -> list[dict[str, dict[str, Any]]]:
     n = int(input.n_eyes())
     if n < 1:
         raise ValueError("Number of SyntEyes must be at least 1")
-    return generate_synteyes(n)
+    if n > 1000:
+        raise ValueError("Number of SyntEyes must be at most 1000")
+
+    flat_records = generate_synteyes(n).to_dict(orient="records")
+    return [nest_synteyes_record(record) for record in flat_records]
+
+
+@reactive.calc
+def generated_data_flat() -> pd.DataFrame:
+    flat_records = [
+        flatten_synteyes_record(record) for record in generated_data_nested()
+    ]
+    return pd.DataFrame(flat_records)
 
 
 @reactive.calc
 @reactive.event(input.generate_retina)
 def generated_retina_curvature() -> pd.DataFrame:
     al = float(input.single_axial_length())
+    if al < 20 or al > 30:
+        raise ValueError("Axial length must be between 20 and 30 mm")
+
     conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(
         MU_AL_RADII, COV_AL_RADII, [0], al
     )
@@ -464,7 +511,7 @@ def generated_retina_curvature() -> pd.DataFrame:
 
 @reactive.calc
 def displayed_data() -> pd.DataFrame:
-    df = generated_data()
+    df = generated_data_flat()
     if not input.compact_view():
         return df
 
@@ -500,7 +547,7 @@ with ui.card():
                 "Enter the amount of eyes and click **Generate SyntEyes**."
             )
 
-        df = generated_data()
+        df = generated_data_flat()
         shown_df = displayed_data()
         mode_label = "compact" if input.compact_view() else "expanded"
         return ui.markdown(
