@@ -273,7 +273,7 @@ def nearest_psd(matrix: NDArray) -> NDArray:
         Matrix with eigenvalues clipped to a small positive threshold.
     """
     eigval, eigvec = np.linalg.eig(matrix)
-    return eigvec @ np.diag(np.maximum(eigval, 10**-6)) @ eigvec.T
+    return eigvec @ np.diag(np.maximum(eigval, 1e-6)) @ eigvec.T
 
 
 def generate_synteyes(n: int) -> pd.DataFrame:
