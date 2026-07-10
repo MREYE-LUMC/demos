@@ -357,7 +357,7 @@ RETINA_COLUMNS = {"RT", "Rret", "ret_rx", "ret_ry", "ret_rz"}
 def section_for_column(column: str) -> str:
     if column in BIOMETRY_COLUMNS:
         return "biometry"
-    if column.startswith("CorAntZ") or column.startswith("CorPostZ"):
+    if column.startswith(("CorAntZ", "CorPostZ")):
         return "cornea"
     if column.startswith("LensAntZ") or column in LENS_COLUMNS:
         return "lens"
@@ -378,6 +378,7 @@ def flatten_synteyes_record(record: dict[str, dict[str, Any]]) -> dict[str, Any]
     for section in SECTIONS:
         flattened.update(record.get(section, {}))
     return flattened
+
 
 PREFIX_HINTS = {
     "CorAntZ": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
