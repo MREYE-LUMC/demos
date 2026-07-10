@@ -386,6 +386,27 @@ ui.tags.script(
 }})();
 """
 )
+ui.tags.script(
+    """
+(() => {
+    $( document ).ready(() => {
+        $(':input').on('change input', (event) => {
+            if (event.target.type !== 'number') return;
+
+            const min = Number(event.target.min);
+            const max = Number(event.target.max);
+            const value = Number(event.target.value)
+
+            if (min && value < min) {
+                event.target.value = min;
+            } else if (max && value > max) {
+                event.target.value = max;
+            }
+        })
+    })
+})();
+"""
+)
 
 with ui.card():
     ui.card_header("Create 3D SyntEyes")
