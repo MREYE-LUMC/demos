@@ -343,9 +343,9 @@ COLUMN_HINTS = {
 
 SECTIONS = ("biometry", "cornea", "lens", "retina", "other")
 
-BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AxialLength", "VD", "Pupil"}
-LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp", "num5", "nl"}
-RETINA_COLUMNS = {"RT", "Rret", "ret_rx", "ret_ry", "ret_rz"}
+BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AxialLength", "VD", "RT"}
+LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp"}
+RETINA_COLUMNS = { "Rret", "ret_rx", "ret_ry", "ret_rz"}
 
 
 def section_for_column(column: str) -> str:
