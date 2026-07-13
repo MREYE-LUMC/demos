@@ -108,8 +108,7 @@ def convert_to_single_orig_synteyes(
         * eigencornea[6:18].reshape(1, -1)
         @ conv_ec.T
     )
-    for idx in range(len(zerniken[0, :])):
-        zerniken[:, idx] = np.add(zerniken[:, idx], avg_ec[:, idx])
+    zerniken += avg_ec
 
     synteyes_array = np.append(eigencornea[:6], zerniken)
 
