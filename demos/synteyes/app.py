@@ -279,6 +279,7 @@ def generate_synteyes(n: int) -> pd.DataFrame:
         weights_orig[1],
         n,
     )
+    eigen_data = np.asarray(eigen_data).reshape(n, -1)
 
     synteyes_orig = pd.DataFrame([])
     for i in range(len(eigen_data)):
