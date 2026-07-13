@@ -111,7 +111,7 @@ def convert_to_single_orig_synteyes(
     for idx in range(len(zerniken[0, :])):
         zerniken[:, idx] = np.add(zerniken[:, idx], avg_ec[:, idx])
 
-    synteyes_array = np.append(eigencornea[range(6)], zerniken)
+    synteyes_array = np.append(eigencornea[:6], zerniken)
 
     synteyes = {"CCT": synteyes_array[96]}
     synteyes["ACD"] = synteyes_array[0]
