@@ -198,21 +198,15 @@ def create_retina_curvature(
     """
     axial_lengths = np.array(synteyes_orig["AxialLength"] - synteyes_orig["RT"])
 
-    cond_sgm = np.array([])
-    for al in axial_lengths:
+    n_rows = len(axial_lengths)
+    cond_sgm = np.empty((n_rows, 3))
+    for idx, al in enumerate(axial_lengths):
         conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(
             mu_retina, cov_retina, [0], al
         )
-        cond_sgm = np.append(
-            cond_sgm,
-            stats.multivariate_normal.rvs(
-                mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1
-            ),
-            axis=0,
+        cond_sgm[idx, :] = stats.multivariate_normal.rvs(
+            mean=conditional_mean_sgm, cov=conditional_cov_sgm
         )
-
-    n_rows = len(axial_lengths)
-    cond_sgm = np.reshape(cond_sgm, (n_rows, 3))
 
     synteyes_orig["ret_rx"] = cond_sgm[:, 0]
     synteyes_orig["ret_ry"] = cond_sgm[:, 1]
