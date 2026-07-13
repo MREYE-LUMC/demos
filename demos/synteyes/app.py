@@ -105,7 +105,7 @@ def convert_to_single_orig_synteyes(
     """
     zerniken = (
         0.001
-        * np.reshape(eigencornea[range(6, 18, 1)], (1, len(range(6, 18, 1))))
+        * eigencornea[6:18].reshape(1, -1)
         @ conv_ec.T
     )
     for idx in range(len(zerniken[0, :])):
