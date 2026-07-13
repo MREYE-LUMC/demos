@@ -164,7 +164,7 @@ def convert_to_single_orig_synteyes(
         lens_m = int(ind_lens[idx, 1])
         synteyes[f"LensAntZ({lens_n},{lens_m})"] = [lens_za_array[:, idx][0]]
     ind_cor = zernike_index(8)
-    cor_za = np.reshape(synteyes_array[range(6, 51, 1)], (1, len(range(6, 51, 1))))
+    cor_za = synteyes_array[6:51].reshape(1, -1)
     for idx in range(cor_za.shape[1]):
         cor_n = int(ind_cor[idx, 0])
         cor_m = int(ind_cor[idx, 1])
