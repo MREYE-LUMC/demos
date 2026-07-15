@@ -103,11 +103,7 @@ def convert_to_single_orig_synteyes(
     pandas.DataFrame
         Single-row dataframe with SyntEyes fields.
     """
-    zerniken = (
-        0.001
-        * eigencornea[6:18].reshape(1, -1)
-        @ conv_ec.T
-    )
+    zerniken = 0.001 * eigencornea[6:18].reshape(1, -1) @ conv_ec.T
     zerniken += avg_ec
 
     synteyes_array = np.append(eigencornea[:6], zerniken)
@@ -345,7 +341,7 @@ SECTIONS = ("biometry", "cornea", "lens", "retina", "other")
 
 BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AxialLength", "VD", "RT"}
 LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp"}
-RETINA_COLUMNS = { "Rret", "ret_rx", "ret_ry", "ret_rz"}
+RETINA_COLUMNS = {"Rret", "ret_rx", "ret_ry", "ret_rz"}
 
 
 def section_for_column(column: str) -> str:
