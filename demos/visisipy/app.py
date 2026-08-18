@@ -187,10 +187,7 @@ app_ui = ui.page_fluid(
     ui.layout_sidebar(
         ui.sidebar(
             ui.accordion(
-                *(
-                    ui.accordion_panel(title, settings)
-                    for title, settings in model_parameters.items()
-                ),
+                *(ui.accordion_panel(title, settings) for title, settings in model_parameters.items()),
                 id="eye_model",
             ),
             ui.input_action_button("restore_defaults", "Restore defaults"),
@@ -215,9 +212,7 @@ app_ui = ui.page_fluid(
                 ui.card(
                     ui.card_header("Refraction by field"),
                     ui.output_table("table_properties"),
-                    (
-                        "Note: J45 is always 0, because this demo does not support astigmatic eyes."
-                    ),
+                    ("Note: J45 is always 0, because this demo does not support astigmatic eyes."),
                 ),
                 ui.card(
                     ui.card_header("Cardinal points w.r.t. cornea apex"),
@@ -281,7 +276,7 @@ def _check_lt(
 def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A002, ARG001
     iv = InputValidator()
 
-    iv.add_rule("field_angle", check.between(-90, 90, [True, True]))
+    iv.add_rule("field_angle", check.between(-90, 90, [True, True], allow_none=True))
     iv.add_rule("wavelength", check.between(0.38, 0.75, [True, True]))
     iv.add_rule("axial_length", _check_gt(0))
     iv.add_rule("cornea_thickness", _check_gt(0))
@@ -444,7 +439,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         fields()
         wavelength = input.wavelength()
 
-        optic = visisipy.backend.get_optic()
+        optic = visisipy.get_optic()
 
         result = []
 
@@ -465,10 +460,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         eye_model()
         input.wavelength()
 
-        refractions = [
-            visisipy.analysis.refraction(field_coordinate=(0, y))
-            for y in range(0, 90, 5)
-        ]
+        refractions = [visisipy.analysis.refraction(field_coordinate=(0, y)) for y in range(0, 90, 5)]
 
         # Reset field settings
         visisipy.update_settings()
@@ -550,20 +542,17 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
             {
                 "Point": "Focal point",
                 "Object": cardinal_points.focal_points.object,
-                "Image": model.geometry.axial_length
-                + cardinal_points.focal_points.image,
+                "Image": model.geometry.axial_length + cardinal_points.focal_points.image,
             },
             {
                 "Point": "Principal point",
                 "Object": cardinal_points.principal_points.object,
-                "Image": model.geometry.axial_length
-                + cardinal_points.principal_points.image,
+                "Image": model.geometry.axial_length + cardinal_points.principal_points.image,
             },
             {
                 "Point": "Nodal point",
                 "Object": cardinal_points.nodal_points.object,
-                "Image": model.geometry.axial_length
-                + cardinal_points.nodal_points.image,
+                "Image": model.geometry.axial_length + cardinal_points.nodal_points.image,
             },
         ]
 
