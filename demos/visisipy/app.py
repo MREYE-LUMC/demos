@@ -273,11 +273,29 @@ def _check_lt(
     )
 
 
+def _check_between(
+    lower: float,
+    upper: float,
+    allow_none: bool = False,  # noqa: FBT001, FBT002
+    message_fmt: str = "Must be between {lower} and {upper}.",
+) -> Callable[[float], str | None]:
+    def inner(value: float) -> str | None:
+        if allow_none and value is None:
+            return None
+
+        if value < lower or value > upper or value is None:
+            return message_fmt.format(lower=lower, upper=upper)
+
+        return None
+
+    return inner
+
+
 def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A002, ARG001
     iv = InputValidator()
 
-    iv.add_rule("field_angle", check.between(-90, 90, [True, True], allow_none=True))
-    iv.add_rule("wavelength", check.between(0.38, 0.75, [True, True]))
+    iv.add_rule("field_angle", _check_between(-90, 90, allow_none=True))
+    iv.add_rule("wavelength", _check_between(0.38, 0.75))
     iv.add_rule("axial_length", _check_gt(0))
     iv.add_rule("cornea_thickness", _check_gt(0))
     iv.add_rule("anterior_chamber_depth", _check_gt(0))
