@@ -8,9 +8,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import visisipy
 from matplotlib.colors import TABLEAU_COLORS, LogNorm
-from shiny import App, Inputs, Outputs, Session, reactive, render, ui
+from shiny import App, Inputs, Outputs, Session, reactive, render, req, ui
+from shiny_validate import InputValidator, check
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import numpy as np
     from matplotlib.figure import Figure
     from pandas.io.formats.style import Styler
@@ -184,10 +187,7 @@ app_ui = ui.page_fluid(
     ui.layout_sidebar(
         ui.sidebar(
             ui.accordion(
-                *(
-                    ui.accordion_panel(title, settings)
-                    for title, settings in model_parameters.items()
-                ),
+                *(ui.accordion_panel(title, settings) for title, settings in model_parameters.items()),
                 id="eye_model",
             ),
             ui.input_action_button("restore_defaults", "Restore defaults"),
@@ -212,10 +212,7 @@ app_ui = ui.page_fluid(
                 ui.card(
                     ui.card_header("Refraction by field"),
                     ui.output_table("table_properties"),
-                    (
-                        "Note: J45 is always 0, because this demo does not support "
-                        "astigmatic eyes."
-                    ),
+                    ("Note: J45 is always 0, because this demo does not support astigmatic eyes."),
                 ),
                 ui.card(
                     ui.card_header("Cardinal points w.r.t. cornea apex"),
@@ -250,7 +247,68 @@ app_ui = ui.page_fluid(
 )
 
 
+def _check_gt(
+    rhs: float,
+    allow_none: bool = False,  # noqa: FBT001, FBT002
+    message_fmt: str = "Must be greater than {rhs}.",
+) -> Callable[[float], str | None]:
+    return check.compare(
+        rhs=rhs,
+        message_fmt=message_fmt,
+        allow_none=allow_none,
+        operator=lambda value, rhs: value > rhs,
+    )
+
+
+def _check_lt(
+    rhs: float,
+    allow_none: bool = False,  # noqa: FBT001, FBT002
+    message_fmt: str = "Must be less than {rhs}.",
+) -> Callable[[float], str | None]:
+    return check.compare(
+        rhs=rhs,
+        message_fmt=message_fmt,
+        allow_none=allow_none,
+        operator=lambda value, rhs: value < rhs,
+    )
+
+
+def _check_between(
+    lower: float,
+    upper: float,
+    allow_none: bool = False,  # noqa: FBT001, FBT002
+    message_fmt: str = "Must be between {lower} and {upper}.",
+) -> Callable[[float], str | None]:
+    def inner(value: float) -> str | None:
+        if allow_none and value is None:
+            return None
+
+        if value < lower or value > upper or value is None:
+            return message_fmt.format(lower=lower, upper=upper)
+
+        return None
+
+    return inner
+
+
 def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A002, ARG001
+    iv = InputValidator()
+
+    iv.add_rule("field_angle", _check_between(-90, 90, allow_none=True))
+    iv.add_rule("wavelength", _check_between(0.38, 0.75))
+    iv.add_rule("axial_length", _check_gt(0))
+    iv.add_rule("cornea_thickness", _check_gt(0))
+    iv.add_rule("anterior_chamber_depth", _check_gt(0))
+    iv.add_rule("lens_thickness", _check_gt(0))
+    iv.add_rule("cornea_front_radius", _check_gt(0))
+    iv.add_rule("cornea_back_radius", _check_gt(0))
+    iv.add_rule("pupil_diameter", _check_gt(0))
+    iv.add_rule("lens_front_radius", _check_gt(0))
+    iv.add_rule("lens_back_radius", _check_lt(0))
+    iv.add_rule("retina_ellipsoid_z_radius", _check_lt(0))
+    iv.add_rule("retina_ellipsoid_y_radius", _check_gt(0))
+    iv.enable()
+
     fields = reactive.value(default_parameters["fields"])
 
     def update_current_fields_selectize(fields: set[int]) -> None:
@@ -399,7 +457,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         fields()
         wavelength = input.wavelength()
 
-        optic = visisipy.backend.get_optic()
+        optic = visisipy.get_optic()
 
         result = []
 
@@ -420,10 +478,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         eye_model()
         input.wavelength()
 
-        refractions = [
-            visisipy.analysis.refraction(field_coordinate=(0, y))
-            for y in range(0, 90, 5)
-        ]
+        refractions = [visisipy.analysis.refraction(field_coordinate=(0, y)) for y in range(0, 90, 5)]
 
         # Reset field settings
         visisipy.update_settings()
@@ -434,6 +489,8 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
 
     @render.plot
     def plot_raytrace() -> Figure:
+        req(iv.is_valid())
+
         # Depend on wavelength and fields
         fields()
         input.wavelength()
@@ -454,6 +511,8 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
 
     @render.table
     def table_properties() -> Styler:
+        req(iv.is_valid())
+
         # Depend on eye model and wavelength
         eye_model()
         input.wavelength()
@@ -489,6 +548,8 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
 
     @render.table
     def table_cardinal_points() -> Styler:
+        req(iv.is_valid())
+
         # Depend on eye model and wavelength
         model = eye_model()
         input.wavelength()
@@ -499,20 +560,17 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
             {
                 "Point": "Focal point",
                 "Object": cardinal_points.focal_points.object,
-                "Image": model.geometry.axial_length
-                + cardinal_points.focal_points.image,
+                "Image": model.geometry.axial_length + cardinal_points.focal_points.image,
             },
             {
                 "Point": "Principal point",
                 "Object": cardinal_points.principal_points.object,
-                "Image": model.geometry.axial_length
-                + cardinal_points.principal_points.image,
+                "Image": model.geometry.axial_length + cardinal_points.principal_points.image,
             },
             {
                 "Point": "Nodal point",
                 "Object": cardinal_points.nodal_points.object,
-                "Image": model.geometry.axial_length
-                + cardinal_points.nodal_points.image,
+                "Image": model.geometry.axial_length + cardinal_points.nodal_points.image,
             },
         ]
 
@@ -525,10 +583,14 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
 
     @render.ui
     def central_refraction() -> str:
+        req(iv.is_valid())
+
         return f"{refraction()[0].M:.2f} D"
 
     @render.plot
     def plot_power_vectors() -> Figure:
+        req(iv.is_valid())
+
         fig, ax = plt.subplots()
 
         ax.plot(range(0, 90, 5), [r.M for r in refraction()], label="$M$")
@@ -543,6 +605,8 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
 
     @render.plot
     def plot_fft_psf() -> Figure:
+        req(iv.is_valid())
+
         # Depend on the eye model
         eye_model()
 
@@ -574,6 +638,8 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
 
     @render.plot
     def plot_fft_mtf() -> Figure:
+        req(iv.is_valid())
+
         # Depend on the eye model, wavelength and fields
         eye_model()
         fields()

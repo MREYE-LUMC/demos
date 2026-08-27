@@ -5,9 +5,7 @@ from shiny import reactive
 from shiny.express import input, render, ui  # noqa: A004
 
 ui.tags.style(
-    ".container { padding-top: 1.5rem; } "
-    "table { display: block; } "
-    "th, td { padding: 0px 10px 0px 0px; } ",
+    ".container { padding-top: 1.5rem; } table { display: block; } th, td { padding: 0px 10px 0px 0px; } ",
 )
 
 with ui.card():
