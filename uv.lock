@@ -6,10 +6,10 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version < '3.12' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
@@ -808,7 +808,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "matplotlib" },
     { name = "numpy" },
-    { name = "optiland", specifier = "==0.6.1" },
+    { name = "optiland", specifier = "==0.6.2" },
     { name = "pandas" },
     { name = "paros", specifier = ">=2.0.0" },
     { name = "pyyaml" },
@@ -959,7 +959,7 @@ wheels = [
 
 [[package]]
 name = "optiland"
-version = "0.6.1"
+version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -974,9 +974,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "vtk" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/92/fe0b8eaf2e94af15f70af38a02f48974a65445c33ffb0f1303b72c061d62/optiland-0.6.1.tar.gz", hash = "sha256:3509356f1e019ae1e5ae8c46659cb678e14b7534a9856c9e9c1c973561b5238f", size = 46569941, upload-time = "2026-07-11T07:51:47.034Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/89/252c3d3d73aa3a350f7ef5a92361dd74ad259279c319a7a9f2cf2589072b/optiland-0.6.2.tar.gz", hash = "sha256:f1bbd0462c04edcaaf56a411667f49cb9f470c32845a000b3c7f81f8a7a93a07", size = 46578935, upload-time = "2026-08-19T15:58:25.865Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/dd/65b96d3ca769db8895154185d41a3b69ea5f41dfb638c62ff6220e14a2d9/optiland-0.6.1-py3-none-any.whl", hash = "sha256:4821691127f136cc02a87b00e801a464762baa5119c550072bfde0f99c889f8a", size = 14815288, upload-time = "2026-07-11T07:51:42.168Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/2d/d5e3513cef74e663bbcd41136ab96317b0e4d354dce37a7c27af5dcbc4ec/optiland-0.6.2-py3-none-any.whl", hash = "sha256:39f16425ded6a7f9825b7e4b8776713ddc4fe53c31ddddb6ed0bfb0f04725b44", size = 14815565, upload-time = "2026-08-19T15:58:23.127Z" },
 ]
 
 [[package]]
