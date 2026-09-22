@@ -50,13 +50,8 @@ def conditional_sgm(
 
     cov_known_known_inv = np.linalg.inv(cov_known_known)
 
-    conditional_mean = mu_unknown + cov_unknown_known @ cov_known_known_inv @ (
-        known_values - mu_known
-    )
-    conditional_cov = (
-        cov_unknown_unknown
-        - cov_unknown_known @ cov_known_known_inv @ cov_known_unknown
-    )
+    conditional_mean = mu_unknown + cov_unknown_known @ cov_known_known_inv @ (known_values - mu_known)
+    conditional_cov = cov_unknown_unknown - cov_unknown_known @ cov_known_known_inv @ cov_known_unknown
 
     return conditional_mean, conditional_cov
 
@@ -112,13 +107,7 @@ def convert_to_single_orig_synteyes(
     synteyes["ACD"] = synteyes_array[0]
     synteyes["LT"] = synteyes_array[1]
     synteyes["AxialLength"] = synteyes_array[2]
-    synteyes["VD"] = (
-        synteyes_array[2]
-        - synteyes_array[0]
-        - synteyes_array[1]
-        - synteyes_array[96]
-        - 0.2
-    )
+    synteyes["VD"] = synteyes_array[2] - synteyes_array[0] - synteyes_array[1] - synteyes_array[96] - 0.2
     synteyes["RT"] = 0.2
     synteyes["Rla"] = synteyes_array[3]
     synteyes["Rlp"] = synteyes_array[4]
@@ -131,10 +120,7 @@ def convert_to_single_orig_synteyes(
     synteyes["num5"] = synteyes_array[5]
     synteyes["nl"] = (
         1000
-        * (
-            synteyes["nv"] * (synteyes["LT"] - synteyes["Rla"])
-            + synteyes["na"] * (synteyes["LT"] + synteyes["Rlp"])
-        )
+        * (synteyes["nv"] * (synteyes["LT"] - synteyes["Rla"]) + synteyes["na"] * (synteyes["LT"] + synteyes["Rlp"]))
         + synteyes["num5"] * synteyes["Rla"] * synteyes["Rlp"]
         - np.sqrt(
             -4
@@ -173,9 +159,7 @@ def convert_to_single_orig_synteyes(
     return pd.DataFrame.from_dict(synteyes)
 
 
-def create_retina_curvature(
-    synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov_retina: NDArray
-) -> pd.DataFrame:
+def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov_retina: NDArray) -> pd.DataFrame:
     """Add retinal curvature values conditioned on axial length.
 
     Parameters
@@ -197,12 +181,8 @@ def create_retina_curvature(
     n_rows = len(axial_lengths)
     cond_sgm = np.empty((n_rows, 3))
     for idx, al in enumerate(axial_lengths):
-        conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(
-            mu_retina, cov_retina, [0], al
-        )
-        cond_sgm[idx, :] = stats.multivariate_normal.rvs(
-            mean=conditional_mean_sgm, cov=conditional_cov_sgm
-        )
+        conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(mu_retina, cov_retina, [0], al)
+        cond_sgm[idx, :] = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm)
 
     synteyes_orig["ret_rx"] = cond_sgm[:, 0]
     synteyes_orig["ret_ry"] = cond_sgm[:, 1]
@@ -279,12 +259,8 @@ def generate_synteyes(n: int) -> pd.DataFrame:
 
     synteyes_orig = pd.DataFrame([])
     for i in range(len(eigen_data)):
-        synteyes_orig_single = convert_to_single_orig_synteyes(
-            eigen_data[i], conv_ec_orig, avg_ec_orig, lens_za_orig
-        )
-        synteyes_orig = pd.concat(
-            [synteyes_orig, synteyes_orig_single], ignore_index=True
-        )
+        synteyes_orig_single = convert_to_single_orig_synteyes(eigen_data[i], conv_ec_orig, avg_ec_orig, lens_za_orig)
+        synteyes_orig = pd.concat([synteyes_orig, synteyes_orig_single], ignore_index=True)
 
     return create_retina_curvature(synteyes_orig, MU_AL_RADII, COV_AL_RADII)
 
@@ -372,8 +348,7 @@ def flatten_synteyes_record(record: dict[str, dict[str, Any]]) -> dict[str, Any]
 
 PREFIX_HINTS = {
     "CorAntZ": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
-    "CorPostZ": "Zernikes of posterior corneal surface "
-    "(mm, 8th order, 6.5 mm diameter)",
+    "CorPostZ": "Zernikes of posterior corneal surface (mm, 8th order, 6.5 mm diameter)",
     "LensAntZ": "Zernikes of anterior lens surface (mm, 5th order, 5.5 mm diameter)",
 }
 
@@ -434,15 +409,11 @@ ui.tags.script(
 with ui.card():
     ui.card_header("Create 3D SyntEyes")
     with ui.layout_columns(class_="align-items-end"):
-        ui.input_numeric(
-            "n_eyes", "Number of 3D SyntEyes", value=10, min=1, max=1000, step=1
-        )
+        ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, max=1000, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
 
         def conditional_download_button(button: render.download) -> render.ui:
-            fallback = ui.input_action_button(
-                button.output_id + "_fallback", label=button.label, disabled=True
-            )
+            fallback = ui.input_action_button(button.output_id + "_fallback", label=button.label, disabled=True)
 
             def wrapper() -> Tag | render.download:
                 if input.generate() == 0 or input.n_eyes() == 0:
@@ -467,9 +438,7 @@ with ui.card():
                     return obj.item()
                 if isinstance(obj, np.ndarray):
                     return obj.tolist()
-                raise TypeError(
-                    f"Object of type {type(obj).__name__} is not JSON serializable"
-                )
+                raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
             records = generated_data_nested()
             yield json.dumps(records, separators=(",", ":"), default=_json_default)
@@ -490,9 +459,7 @@ def generated_data_nested() -> list[dict[str, dict[str, Any]]]:
 
 @reactive.calc
 def generated_data_flat() -> pd.DataFrame:
-    flat_records = [
-        flatten_synteyes_record(record) for record in generated_data_nested()
-    ]
+    flat_records = [flatten_synteyes_record(record) for record in generated_data_nested()]
     return pd.DataFrame(flat_records)
 
 
@@ -503,12 +470,8 @@ def generated_retina_curvature() -> pd.DataFrame:
     if al < 20 or al > 30:
         raise ValueError("Axial length must be between 20 and 30 mm")
 
-    conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(
-        MU_AL_RADII, COV_AL_RADII, [0], al
-    )
-    rx, ry, rz = stats.multivariate_normal.rvs(
-        mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1
-    )
+    conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(MU_AL_RADII, COV_AL_RADII, [0], al)
+    rx, ry, rz = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1)
     return pd.DataFrame(
         [
             {
@@ -555,9 +518,7 @@ with ui.card():
     @render.ui
     def result_summary() -> HTML:
         if input.generate() == 0:
-            return ui.markdown(
-                "Enter the amount of eyes and click **Generate SyntEyes**."
-            )
+            return ui.markdown("Enter the amount of eyes and click **Generate SyntEyes**.")
 
         df = generated_data_flat()
         shown_df = displayed_data()
@@ -570,7 +531,7 @@ with ui.card():
 
     @render.data_frame
     def result_table() -> render.DataGrid:
-        return render.DataGrid(displayed_data().head(20))
+        return render.DataGrid(displayed_data().head(20).round(3))
 
 
 with ui.card():
@@ -593,8 +554,6 @@ with ui.card():
             return render.DataGrid(generated_retina_curvature().round(2))
 
         if input.generate_retina() == 0:
-            return ui.markdown(
-                "Enter an axial length and click **Generate Retina Radii**."
-            )
+            return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
 
         return retina_result_table
