@@ -198,6 +198,7 @@ def create_mgmm_data(
     w_c0: float,
     w_c1: float,
     n: int,
+    rng:np.random.Generator=None,
 ) -> NDArray:
     """Sample from a weighted two-component Gaussian mixture model.
 
@@ -217,15 +218,31 @@ def create_mgmm_data(
         Weight for component 1 sample.
     n : int
         Number of samples to generate.
+    rng : np.random.Generator
+        Random number generator used to decide the mixture components for each sample.
 
     Returns
     -------
     np.ndarray
         Generated samples in latent eigencornea space.
     """
-    comp0 = stats.multivariate_normal.rvs(mu_c0, cov_c0, size=n)
-    comp1 = stats.multivariate_normal.rvs(mu_c1, cov_c1, size=n)
-    return w_c0 * comp0 + w_c1 * comp1
+    if rng is None:
+        rng = np.random.default_rng()
+
+    n_components = 2
+    counts = rng.multinomial(n, [w_c0, w_c1])
+    data = []
+    labels = []
+
+    mu_all = [mu_c0, mu_c1]
+    cov_all = [cov_c0, cov_c1]
+
+    for k in range(n_components):
+        samples = rng.multivariate_normal(mu_all[k], cov_all[k], size=counts[k])
+        data.append(samples)
+        labels.extend([k] * counts[k])
+    data = np.vstack(data)
+    return data
 
 
 def nearest_psd(matrix: NDArray) -> NDArray:
