@@ -174,7 +174,7 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
     Returns
     -------
     pandas.DataFrame
-        Input dataframe with ``ret_NT``, ``ret_IS``, and ``ret_PA`` added.
+        Input dataframe with ``RetNT``, ``RetIS``, and ``RetPA`` added.
     """
     axial_lengths = np.array(synteyes_orig["AL"] - synteyes_orig["RT"])
 
@@ -184,9 +184,9 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
         conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(mu_retina, cov_retina, [0], al)
         cond_sgm[idx, :] = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm)
 
-    synteyes_orig["ret_NT"] = cond_sgm[:, 0]
-    synteyes_orig["ret_IS"] = cond_sgm[:, 1]
-    synteyes_orig["ret_PA"] = cond_sgm[:, 2]
+    synteyes_orig["RetNT"] = cond_sgm[:, 0]
+    synteyes_orig["RetIS"] = cond_sgm[:, 1]
+    synteyes_orig["RetPA"] = cond_sgm[:, 2]
     return synteyes_orig
 
 
@@ -326,16 +326,16 @@ COLUMN_HINTS = {
     "na": "Refractive index of the aqueous",
     "nv": "Refractive index of the vitreous",
     "nl": "Refractive index of the lens",
-    "ret_NT": "Retinal ellipsoid radius in the nasal-temporal direction (mm)",
-    "ret_IS": "Retinal ellipsoid radius in the inferior-superior direction (mm)",
-    "ret_PA": "Retinal ellipsoid radius in the posterior-anterior direction (mm)",
+    "RetNT": "Retinal ellipsoid radius in the nasal-temporal direction (mm)",
+    "RetIS": "Retinal ellipsoid radius in the inferior-superior direction (mm)",
+    "RetPA": "Retinal ellipsoid radius in the posterior-anterior direction (mm)",
 }
 
 SECTIONS = ("biometry", "cornea", "lens", "retina", "other")
 
 BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AL", "VD", "RT"}
 LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp"}
-RETINA_COLUMNS = {"Rret", "ret_NT", "ret_IS", "ret_PA"}
+RETINA_COLUMNS = {"Rret", "RetNT", "RetIS", "RetPA"}
 
 
 def section_for_column(column: str) -> str:
@@ -494,9 +494,9 @@ def generated_retina_curvature() -> pd.DataFrame:
         [
             {
                 "AL": al,
-                "ret_NT": float(rNT),
-                "ret_IS": float(rIS),
-                "ret_PA": float(rPA),
+                "RetNT": float(rNT),
+                "RetIS": float(rIS),
+                "RetPA": float(rPA),
             }
         ]
     )
@@ -514,9 +514,9 @@ def displayed_data() -> pd.DataFrame:
         "LT",
         "AL",
         "VD",
-        "ret_NT",
-        "ret_IS",
-        "ret_PA",
+        "RetNT",
+        "RetIS",
+        "RetPA",
     ]
     selected_columns = [col for col in preferred_columns if col in df.columns]
     return df[selected_columns]
