@@ -117,11 +117,11 @@ def convert_to_single_orig_synteyes(
     synteyes["nc"] = 1.376
     synteyes["na"] = 1.336
     synteyes["nv"] = 1.336
-    synteyes["num5"] = synteyes_array[5]
+    num5 = synteyes_array[5]
     synteyes["nl"] = (
         1000
         * (synteyes["nv"] * (synteyes["LT"] - synteyes["Rla"]) + synteyes["na"] * (synteyes["LT"] + synteyes["Rlp"]))
-        + synteyes["num5"] * synteyes["Rla"] * synteyes["Rlp"]
+        + num5 * synteyes["Rla"] * synteyes["Rlp"]
         - np.sqrt(
             -4
             * 10**6
@@ -132,7 +132,7 @@ def convert_to_single_orig_synteyes(
             + (
                 1000 * synteyes["nv"] * (-1 * synteyes["LT"] + synteyes["Rla"])
                 + 1000 * synteyes["na"] * (-1 * synteyes["LT"] - 1 * synteyes["Rlp"])
-                - synteyes["num5"] * synteyes["Rla"] * synteyes["Rlp"]
+                - num5 * synteyes["Rla"] * synteyes["Rlp"]
             )
             ** 2
         )
