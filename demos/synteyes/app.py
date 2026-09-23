@@ -106,7 +106,7 @@ def convert_to_single_orig_synteyes(
     synteyes = {"CCT": synteyes_array[96]}
     synteyes["ACD"] = synteyes_array[0]
     synteyes["LT"] = synteyes_array[1]
-    synteyes["AxialLength"] = synteyes_array[2]
+    synteyes["AL"] = synteyes_array[2]
     synteyes["VD"] = synteyes_array[2] - synteyes_array[0] - synteyes_array[1] - synteyes_array[96] - 0.2
     synteyes["RT"] = 0.2
     synteyes["Rla"] = synteyes_array[3]
@@ -176,7 +176,7 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
     pandas.DataFrame
         Input dataframe with ``ret_rx``, ``ret_ry``, and ``ret_rz`` added.
     """
-    axial_lengths = np.array(synteyes_orig["AxialLength"] - synteyes_orig["RT"])
+    axial_lengths = np.array(synteyes_orig["AL"] - synteyes_orig["RT"])
 
     n_rows = len(axial_lengths)
     cond_sgm = np.empty((n_rows, 3))
@@ -313,7 +313,7 @@ COLUMN_HINTS = {
     "CCT": "Pachymetry (mm)",
     "ACD": "Anterior chamber depth (mm)",
     "LT": "Lens thickness (mm)",
-    "AxialLength": "Axial length (mm)",
+    "AL": "Axial length (mm)",
     "VD": "Vitreous depth excluding retina (mm)",
     "RT": "Retinal thickness (fixed value 0.2 mm)",
     "Rla": "Radius of curvature for the anterior lens surface (mm)",
@@ -332,7 +332,7 @@ COLUMN_HINTS = {
 
 SECTIONS = ("biometry", "cornea", "lens", "retina", "other")
 
-BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AxialLength", "VD", "RT"}
+BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AL", "VD", "RT"}
 LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp"}
 RETINA_COLUMNS = {"Rret", "ret_rx", "ret_ry", "ret_rz"}
 
@@ -492,7 +492,7 @@ def generated_retina_curvature() -> pd.DataFrame:
     return pd.DataFrame(
         [
             {
-                "AxialLength": al,
+                "AL": al,
                 "ret_rx": float(rx),
                 "ret_ry": float(ry),
                 "ret_rz": float(rz),
@@ -511,7 +511,7 @@ def displayed_data() -> pd.DataFrame:
         "CCT",
         "ACD",
         "LT",
-        "AxialLength",
+        "AL",
         "VD",
         "ret_rx",
         "ret_ry",
