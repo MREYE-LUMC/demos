@@ -427,7 +427,7 @@ ui.tags.script(
 with ui.card():
     ui.card_header("Create 3D SyntEyes")
     with ui.layout_columns(class_="align-items-end"):
-        ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, max=1000, step=1)
+        ui.input_numeric("n_eyes", "Number of 3D SyntEyes (max. 1000)", value=10, min=1, max=1000, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
 
         def conditional_download_button(button: render.download) -> render.ui:
@@ -549,7 +549,7 @@ with ui.card():
 
     @render.data_frame
     def result_table() -> render.DataGrid:
-        return render.DataGrid(displayed_data().head(20).round(3))
+        return render.DataGrid(displayed_data().head(20).map(lambda x:f"{x:.3f}"))
 
 
 with ui.card():
@@ -557,19 +557,20 @@ with ui.card():
     with ui.layout_columns():
         ui.input_numeric(
             "single_axial_length",
-            "Axial length of the eye [mm]",
-            value=24.0,
+            "Axial length of the eye [mm] (20 - 30 mm)",
+            value=24.00,
             min=20.0,
             max=30.0,
             step=0.1,
+            width="350px",
         )
-        ui.input_action_button("generate_retina", "Generate Retina Radii")
+        ui.input_action_button("generate_retina", "Generate Retina Radii",width="600px")
 
     @render.ui
     def retina_result() -> render.data_frame | HTML:
         @render.data_frame
         def retina_result_table() -> render.DataGrid:
-            return render.DataGrid(generated_retina_curvature().round(2))
+            return render.DataGrid(generated_retina_curvature().map(lambda x:f"{x:.2f}"))
 
         if input.generate_retina() == 0:
             return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
