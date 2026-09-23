@@ -331,7 +331,7 @@ COLUMN_HINTS = {
     "RetPA": "Retinal ellipsoid radius in the posterior-anterior direction (mm)",
 }
 
-SECTIONS = ("biometry", "cornea", "lens", "retina", "other")
+SECTIONS = ("biometry", "retina", "other", "lens", "corneaZer", "lensZer")
 
 BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AL", "VD", "RT"}
 LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp"}
@@ -342,8 +342,10 @@ def section_for_column(column: str) -> str:
     if column in BIOMETRY_COLUMNS:
         return "biometry"
     if column.startswith(("CorAntZ", "CorPostZ")):
-        return "cornea"
-    if column.startswith("LensAntZ") or column in LENS_COLUMNS:
+        return "corneaZer"
+    if column.startswith("LensAntZ"):
+        return "lensZer"
+    if column in LENS_COLUMNS:
         return "lens"
     if column in RETINA_COLUMNS:
         return "retina"
