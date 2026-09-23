@@ -174,7 +174,7 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
     Returns
     -------
     pandas.DataFrame
-        Input dataframe with ``ret_rx``, ``ret_ry``, and ``ret_rz`` added.
+        Input dataframe with ``ret_NT``, ``ret_IS``, and ``ret_PA`` added.
     """
     axial_lengths = np.array(synteyes_orig["AL"] - synteyes_orig["RT"])
 
@@ -184,9 +184,9 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
         conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(mu_retina, cov_retina, [0], al)
         cond_sgm[idx, :] = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm)
 
-    synteyes_orig["ret_rx"] = cond_sgm[:, 0]
-    synteyes_orig["ret_ry"] = cond_sgm[:, 1]
-    synteyes_orig["ret_rz"] = cond_sgm[:, 2]
+    synteyes_orig["ret_NT"] = cond_sgm[:, 0]
+    synteyes_orig["ret_IS"] = cond_sgm[:, 1]
+    synteyes_orig["ret_PA"] = cond_sgm[:, 2]
     return synteyes_orig
 
 
@@ -325,16 +325,17 @@ COLUMN_HINTS = {
     "nc": "Refractive index of the cornea",
     "na": "Refractive index of the aqueous",
     "nv": "Refractive index of the vitreous",
-    "ret_rx": "Retinal ellipsoid radius along x (mm)",
-    "ret_ry": "Retinal ellipsoid radius along y (mm)",
-    "ret_rz": "Retinal ellipsoid radius along z (mm)",
+    "nl": "Refractive index of the lens",
+    "ret_NT": "Retinal ellipsoid radius in the nasal-temporal direction (mm)",
+    "ret_IS": "Retinal ellipsoid radius in the inferior-superior direction (mm)",
+    "ret_PA": "Retinal ellipsoid radius in the posterior-anterior direction (mm)",
 }
 
 SECTIONS = ("biometry", "cornea", "lens", "retina", "other")
 
 BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AL", "VD", "RT"}
 LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp"}
-RETINA_COLUMNS = {"Rret", "ret_rx", "ret_ry", "ret_rz"}
+RETINA_COLUMNS = {"Rret", "ret_NT", "ret_IS", "ret_PA"}
 
 
 def section_for_column(column: str) -> str:
@@ -488,14 +489,14 @@ def generated_retina_curvature() -> pd.DataFrame:
         raise ValueError("Axial length must be between 20 and 30 mm")
 
     conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(MU_AL_RADII, COV_AL_RADII, [0], al)
-    rx, ry, rz = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1)
+    rNT, rIS, rPA = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1)
     return pd.DataFrame(
         [
             {
                 "AL": al,
-                "ret_rx": float(rx),
-                "ret_ry": float(ry),
-                "ret_rz": float(rz),
+                "ret_NT": float(rNT),
+                "ret_IS": float(rIS),
+                "ret_PA": float(rPA),
             }
         ]
     )
@@ -513,9 +514,9 @@ def displayed_data() -> pd.DataFrame:
         "LT",
         "AL",
         "VD",
-        "ret_rx",
-        "ret_ry",
-        "ret_rz",
+        "ret_NT",
+        "ret_IS",
+        "ret_PA",
     ]
     selected_columns = [col for col in preferred_columns if col in df.columns]
     return df[selected_columns]
