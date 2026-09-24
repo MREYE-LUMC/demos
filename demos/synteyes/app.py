@@ -245,23 +245,6 @@ def create_mgmm_data(
     return np.vstack(samples)
 
 
-def nearest_psd(matrix: NDArray) -> NDArray:
-    """Project a matrix to a positive semi-definite approximation.
-
-    Parameters
-    ----------
-    matrix : np.ndarray
-        Input square matrix.
-
-    Returns
-    -------
-    np.ndarray
-        Matrix with eigenvalues clipped to a small positive threshold.
-    """
-    eigval, eigvec = np.linalg.eig(matrix)
-    return eigvec @ np.diag(np.maximum(eigval, 1e-6)) @ eigvec.T
-
-
 def generate_synteyes(n: int) -> pd.DataFrame:
     eigen_data = create_mgmm_data(mu_orig, (cov_orig0, cov_orig1), weights_orig, n, rng=RNG)
     eigen_data = np.asarray(eigen_data).reshape(n, -1)
@@ -285,10 +268,7 @@ weights_orig = np.array(modeldata["weights_orig"])
 mu_orig = np.array(modeldata["mu_orig"])
 cov_orig0 = np.array(modeldata["cov_orig0"])
 cov_orig1 = np.array(modeldata["cov_orig1"])
-
-cov_orig = np.zeros((2, np.shape(cov_orig0)[0], np.shape(cov_orig0)[1]))
-cov_orig[0] = nearest_psd(cov_orig0)
-cov_orig[1] = cov_orig1
+cov_orig = [cov_orig0,cov_orig1]
 
 # Retina model parameters
 MU_AL_RADII = np.array([23.85, 11.89, 11.66, 10.55])
