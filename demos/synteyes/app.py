@@ -536,7 +536,7 @@ with ui.card():
 
     @render.data_frame
     def result_table() -> render.DataGrid:
-        return render.DataGrid(displayed_data().head(20).map("{x:.2f}".format))
+        return render.DataGrid(displayed_data().head(20).map("{:.2f}".format))
 
 
 with ui.card():
@@ -557,7 +557,7 @@ with ui.card():
     def retina_result() -> render.data_frame | HTML:
         @render.data_frame
         def retina_result_table() -> render.DataGrid:
-            return render.DataGrid(generated_retina_curvature().map("{x:.2f}".format))
+            return render.DataGrid(generated_retina_curvature().map("{:.2f}".format))
 
         if input.generate_retina() == 0:
             return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
