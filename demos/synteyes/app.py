@@ -11,10 +11,13 @@ from shiny import reactive
 from shiny.express import input, render, ui  # noqa: A004
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Sequence
 
     from htmltools import HTML, Tag
     from numpy.typing import NDArray
+
+
+RNG = np.random.default_rng()
 
 
 def conditional_sgm(
@@ -123,7 +126,8 @@ def convert_to_single_orig_synteyes(
         * (synteyes["nv"] * (synteyes["LT"] - synteyes["Rla"]) + synteyes["na"] * (synteyes["LT"] + synteyes["Rlp"]))
         + num5 * synteyes["Rla"] * synteyes["Rlp"]
         - np.sqrt(
-            -4* 10**6
+            -4
+            * 10**6
             * synteyes["na"]
             * synteyes["nv"]
             * synteyes["LT"]
@@ -190,33 +194,21 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
 
 
 def create_mgmm_data(
-    mu_c0: NDArray,
-    mu_c1: NDArray,
-    cov_c0: NDArray,
-    cov_c1: NDArray,
-    w_c0: float,
-    w_c1: float,
-    n: int,
-    rng:np.random.Generator=None,
+    mu: Sequence[NDArray],
+    cov: Sequence[NDArray],
+    weights: Sequence[float],
+    rng: np.random.Generator | None = None,
 ) -> NDArray:
     """Sample from a weighted two-component Gaussian mixture model.
 
     Parameters
     ----------
-    mu_c0 : np.ndarray
-        Mean vector of component 0.
-    mu_c1 : np.ndarray
-        Mean vector of component 1.
-    cov_c0 : np.ndarray
-        Covariance matrix of component 0.
-    cov_c1 : np.ndarray
-        Covariance matrix of component 1.
-    w_c0 : float
-        Weight for component 0 sample.
-    w_c1 : float
-        Weight for component 1 sample.
-    n : int
-        Number of samples to generate.
+    mu : Sequence[np.ndarray]
+        Mean vectors for each component.
+    cov : Sequence[np.ndarray]
+        Covariance matrices for each component.
+    weights : Sequence[float]
+        Mixture weights for each component.
     rng : np.random.Generator
         Random number generator used to decide the mixture components for each sample.
 
@@ -224,24 +216,26 @@ def create_mgmm_data(
     -------
     np.ndarray
         Generated samples in latent eigencornea space.
+
+    Raises
+    ------
+    ValueError
+        If the lengths of ``mu``, ``cov``, and ``weights`` do not match.
     """
+    if not len(mu) == len(cov) == len(weights):
+        raise ValueError("mu, cov, and weights must have the same length")
+
     if rng is None:
         rng = np.random.default_rng()
 
-    n_components = 2
-    counts = rng.multinomial(n, [w_c0, w_c1])
-    data = []
-    labels = []
+    n = len(mu)
+    counts = rng.multinomial(n, weights)
+    samples = [
+        rng.multivariate_normal(mean, covariance, size=count)
+        for mean, covariance, count in zip(mu, cov, counts, strict=True)
+    ]
 
-    mu_all = [mu_c0, mu_c1]
-    cov_all = [cov_c0, cov_c1]
-
-    for k in range(n_components):
-        samples = rng.multivariate_normal(mu_all[k], cov_all[k], size=counts[k])
-        data.append(samples)
-        labels.extend([k] * counts[k])
-    data = np.vstack(data)
-    return data
+    return np.vstack(samples)
 
 
 def nearest_psd(matrix: NDArray) -> NDArray:
@@ -262,15 +256,7 @@ def nearest_psd(matrix: NDArray) -> NDArray:
 
 
 def generate_synteyes(n: int) -> pd.DataFrame:
-    eigen_data = create_mgmm_data(
-        mu_orig[0],
-        mu_orig[1],
-        cov_orig0,
-        cov_orig1,
-        weights_orig[0],
-        weights_orig[1],
-        n,
-    )
+    eigen_data = create_mgmm_data(mu_orig, (cov_orig0, cov_orig1), weights_orig, rng=RNG)
     eigen_data = np.asarray(eigen_data).reshape(n, -1)
 
     synteyes_orig = pd.DataFrame([])
@@ -550,7 +536,7 @@ with ui.card():
 
     @render.data_frame
     def result_table() -> render.DataGrid:
-        return render.DataGrid(displayed_data().head(20).map(lambda x:f"{x:.3f}"))
+        return render.DataGrid(displayed_data().head(20).map("{x:.2f}".format))
 
 
 with ui.card():
@@ -565,13 +551,13 @@ with ui.card():
             step=0.1,
             width="350px",
         )
-        ui.input_action_button("generate_retina", "Generate Retina Radii",width="600px")
+        ui.input_action_button("generate_retina", "Generate Retina Radii", width="600px")
 
     @render.ui
     def retina_result() -> render.data_frame | HTML:
         @render.data_frame
         def retina_result_table() -> render.DataGrid:
-            return render.DataGrid(generated_retina_curvature().map(lambda x:f"{x:.2f}"))
+            return render.DataGrid(generated_retina_curvature().map("{x:.2f}".format))
 
         if input.generate_retina() == 0:
             return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
