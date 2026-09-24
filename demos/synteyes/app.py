@@ -18,6 +18,11 @@ if TYPE_CHECKING:
 
 
 RNG = np.random.default_rng()
+DISPLAY_PRECISION = 3
+
+
+def _format_float(value: float, precision: int = DISPLAY_PRECISION) -> str:
+    return f"{value:.{precision}f}"
 
 
 def conditional_sgm(
@@ -197,6 +202,7 @@ def create_mgmm_data(
     mu: Sequence[NDArray],
     cov: Sequence[NDArray],
     weights: Sequence[float],
+    n: int,
     rng: np.random.Generator | None = None,
 ) -> NDArray:
     """Sample from a weighted two-component Gaussian mixture model.
@@ -209,6 +215,8 @@ def create_mgmm_data(
         Covariance matrices for each component.
     weights : Sequence[float]
         Mixture weights for each component.
+    n : int
+        Number of samples to generate.
     rng : np.random.Generator
         Random number generator used to decide the mixture components for each sample.
 
@@ -228,7 +236,6 @@ def create_mgmm_data(
     if rng is None:
         rng = np.random.default_rng()
 
-    n = len(mu)
     counts = rng.multinomial(n, weights)
     samples = [
         rng.multivariate_normal(mean, covariance, size=count)
@@ -256,7 +263,7 @@ def nearest_psd(matrix: NDArray) -> NDArray:
 
 
 def generate_synteyes(n: int) -> pd.DataFrame:
-    eigen_data = create_mgmm_data(mu_orig, (cov_orig0, cov_orig1), weights_orig, rng=RNG)
+    eigen_data = create_mgmm_data(mu_orig, (cov_orig0, cov_orig1), weights_orig, n, rng=RNG)
     eigen_data = np.asarray(eigen_data).reshape(n, -1)
 
     synteyes_orig = pd.DataFrame([])
@@ -536,7 +543,7 @@ with ui.card():
 
     @render.data_frame
     def result_table() -> render.DataGrid:
-        return render.DataGrid(displayed_data().head(20).map("{:.2f}".format))
+        return render.DataGrid(displayed_data().head(20).map(_format_float))
 
 
 with ui.card():
@@ -557,7 +564,7 @@ with ui.card():
     def retina_result() -> render.data_frame | HTML:
         @render.data_frame
         def retina_result_table() -> render.DataGrid:
-            return render.DataGrid(generated_retina_curvature().map("{:.2f}".format))
+            return render.DataGrid(generated_retina_curvature().map(_format_float))
 
         if input.generate_retina() == 0:
             return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
