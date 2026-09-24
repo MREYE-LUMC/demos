@@ -123,8 +123,7 @@ def convert_to_single_orig_synteyes(
         * (synteyes["nv"] * (synteyes["LT"] - synteyes["Rla"]) + synteyes["na"] * (synteyes["LT"] + synteyes["Rlp"]))
         + num5 * synteyes["Rla"] * synteyes["Rlp"]
         - np.sqrt(
-            -4
-            * 10**6
+            -4* 10**6
             * synteyes["na"]
             * synteyes["nv"]
             * synteyes["LT"]
