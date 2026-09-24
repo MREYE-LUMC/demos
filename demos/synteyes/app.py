@@ -11,10 +11,13 @@ from shiny import reactive
 from shiny.express import input, render, ui  # noqa: A004
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Sequence
 
     from htmltools import HTML, Tag
     from numpy.typing import NDArray
+
+
+RNG = np.random.default_rng()
 
 
 def conditional_sgm(
@@ -106,7 +109,7 @@ def convert_to_single_orig_synteyes(
     synteyes = {"CCT": synteyes_array[96]}
     synteyes["ACD"] = synteyes_array[0]
     synteyes["LT"] = synteyes_array[1]
-    synteyes["AxialLength"] = synteyes_array[2]
+    synteyes["AL"] = synteyes_array[2]
     synteyes["VD"] = synteyes_array[2] - synteyes_array[0] - synteyes_array[1] - synteyes_array[96] - 0.2
     synteyes["RT"] = 0.2
     synteyes["Rla"] = synteyes_array[3]
@@ -117,11 +120,11 @@ def convert_to_single_orig_synteyes(
     synteyes["nc"] = 1.376
     synteyes["na"] = 1.336
     synteyes["nv"] = 1.336
-    synteyes["num5"] = synteyes_array[5]
+    num5 = synteyes_array[5]
     synteyes["nl"] = (
         1000
         * (synteyes["nv"] * (synteyes["LT"] - synteyes["Rla"]) + synteyes["na"] * (synteyes["LT"] + synteyes["Rlp"]))
-        + synteyes["num5"] * synteyes["Rla"] * synteyes["Rlp"]
+        + num5 * synteyes["Rla"] * synteyes["Rlp"]
         - np.sqrt(
             -4
             * 10**6
@@ -132,7 +135,7 @@ def convert_to_single_orig_synteyes(
             + (
                 1000 * synteyes["nv"] * (-1 * synteyes["LT"] + synteyes["Rla"])
                 + 1000 * synteyes["na"] * (-1 * synteyes["LT"] - 1 * synteyes["Rlp"])
-                - synteyes["num5"] * synteyes["Rla"] * synteyes["Rlp"]
+                - num5 * synteyes["Rla"] * synteyes["Rlp"]
             )
             ** 2
         )
@@ -174,9 +177,9 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
     Returns
     -------
     pandas.DataFrame
-        Input dataframe with ``ret_rx``, ``ret_ry``, and ``ret_rz`` added.
+        Input dataframe with ``RetNT``, ``RetIS``, and ``RetPA`` added.
     """
-    axial_lengths = np.array(synteyes_orig["AxialLength"] - synteyes_orig["RT"])
+    axial_lengths = np.array(synteyes_orig["AL"] - synteyes_orig["RT"])
 
     n_rows = len(axial_lengths)
     cond_sgm = np.empty((n_rows, 3))
@@ -184,48 +187,55 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
         conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(mu_retina, cov_retina, [0], al)
         cond_sgm[idx, :] = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm)
 
-    synteyes_orig["ret_rx"] = cond_sgm[:, 0]
-    synteyes_orig["ret_ry"] = cond_sgm[:, 1]
-    synteyes_orig["ret_rz"] = cond_sgm[:, 2]
+    synteyes_orig["RetNT"] = cond_sgm[:, 0]
+    synteyes_orig["RetIS"] = cond_sgm[:, 1]
+    synteyes_orig["RetPA"] = cond_sgm[:, 2]
     return synteyes_orig
 
 
 def create_mgmm_data(
-    mu_c0: NDArray,
-    mu_c1: NDArray,
-    cov_c0: NDArray,
-    cov_c1: NDArray,
-    w_c0: float,
-    w_c1: float,
-    n: int,
+    mu: Sequence[NDArray],
+    cov: Sequence[NDArray],
+    weights: Sequence[float],
+    rng: np.random.Generator | None = None,
 ) -> NDArray:
     """Sample from a weighted two-component Gaussian mixture model.
 
     Parameters
     ----------
-    mu_c0 : np.ndarray
-        Mean vector of component 0.
-    mu_c1 : np.ndarray
-        Mean vector of component 1.
-    cov_c0 : np.ndarray
-        Covariance matrix of component 0.
-    cov_c1 : np.ndarray
-        Covariance matrix of component 1.
-    w_c0 : float
-        Weight for component 0 sample.
-    w_c1 : float
-        Weight for component 1 sample.
-    n : int
-        Number of samples to generate.
+    mu : Sequence[np.ndarray]
+        Mean vectors for each component.
+    cov : Sequence[np.ndarray]
+        Covariance matrices for each component.
+    weights : Sequence[float]
+        Mixture weights for each component.
+    rng : np.random.Generator
+        Random number generator used to decide the mixture components for each sample.
 
     Returns
     -------
     np.ndarray
         Generated samples in latent eigencornea space.
+
+    Raises
+    ------
+    ValueError
+        If the lengths of ``mu``, ``cov``, and ``weights`` do not match.
     """
-    comp0 = stats.multivariate_normal.rvs(mu_c0, cov_c0, size=n)
-    comp1 = stats.multivariate_normal.rvs(mu_c1, cov_c1, size=n)
-    return w_c0 * comp0 + w_c1 * comp1
+    if not len(mu) == len(cov) == len(weights):
+        raise ValueError("mu, cov, and weights must have the same length")
+
+    if rng is None:
+        rng = np.random.default_rng()
+
+    n = len(mu)
+    counts = rng.multinomial(n, weights)
+    samples = [
+        rng.multivariate_normal(mean, covariance, size=count)
+        for mean, covariance, count in zip(mu, cov, counts, strict=True)
+    ]
+
+    return np.vstack(samples)
 
 
 def nearest_psd(matrix: NDArray) -> NDArray:
@@ -246,15 +256,7 @@ def nearest_psd(matrix: NDArray) -> NDArray:
 
 
 def generate_synteyes(n: int) -> pd.DataFrame:
-    eigen_data = create_mgmm_data(
-        mu_orig[0],
-        mu_orig[1],
-        cov_orig0,
-        cov_orig1,
-        weights_orig[0],
-        weights_orig[1],
-        n,
-    )
+    eigen_data = create_mgmm_data(mu_orig, (cov_orig0, cov_orig1), weights_orig, rng=RNG)
     eigen_data = np.asarray(eigen_data).reshape(n, -1)
 
     synteyes_orig = pd.DataFrame([])
@@ -296,7 +298,7 @@ COLUMN_HINTS = {
     "CCT": "Pachymetry (mm)",
     "ACD": "Anterior chamber depth (mm)",
     "LT": "Lens thickness (mm)",
-    "AxialLength": "Axial length (mm)",
+    "AL": "Axial length (mm)",
     "VD": "Vitreous depth excluding retina (mm)",
     "RT": "Retinal thickness (fixed value 0.2 mm)",
     "Rla": "Radius of curvature for the anterior lens surface (mm)",
@@ -308,24 +310,27 @@ COLUMN_HINTS = {
     "nc": "Refractive index of the cornea",
     "na": "Refractive index of the aqueous",
     "nv": "Refractive index of the vitreous",
-    "ret_rx": "Retinal ellipsoid radius along x (mm)",
-    "ret_ry": "Retinal ellipsoid radius along y (mm)",
-    "ret_rz": "Retinal ellipsoid radius along z (mm)",
+    "nl": "Refractive index of the lens",
+    "RetNT": "Retinal ellipsoid radius in the nasal-temporal direction (mm)",
+    "RetIS": "Retinal ellipsoid radius in the inferior-superior direction (mm)",
+    "RetPA": "Retinal ellipsoid radius in the posterior-anterior direction (mm)",
 }
 
-SECTIONS = ("biometry", "cornea", "lens", "retina", "other")
+SECTIONS = ("biometry", "retina", "other", "lens", "corneaZer", "lensZer")
 
-BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AxialLength", "VD", "RT"}
+BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AL", "VD", "RT"}
 LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp"}
-RETINA_COLUMNS = {"Rret", "ret_rx", "ret_ry", "ret_rz"}
+RETINA_COLUMNS = {"Rret", "RetNT", "RetIS", "RetPA"}
 
 
 def section_for_column(column: str) -> str:
     if column in BIOMETRY_COLUMNS:
         return "biometry"
     if column.startswith(("CorAntZ", "CorPostZ")):
-        return "cornea"
-    if column.startswith("LensAntZ") or column in LENS_COLUMNS:
+        return "corneaZer"
+    if column.startswith("LensAntZ"):
+        return "lensZer"
+    if column in LENS_COLUMNS:
         return "lens"
     if column in RETINA_COLUMNS:
         return "retina"
@@ -409,7 +414,7 @@ ui.tags.script(
 with ui.card():
     ui.card_header("Create 3D SyntEyes")
     with ui.layout_columns(class_="align-items-end"):
-        ui.input_numeric("n_eyes", "Number of 3D SyntEyes", value=10, min=1, max=1000, step=1)
+        ui.input_numeric("n_eyes", "Number of 3D SyntEyes (max. 1000)", value=10, min=1, max=1000, step=1)
         ui.input_action_button("generate", "Generate SyntEyes")
 
         def conditional_download_button(button: render.download) -> render.ui:
@@ -471,14 +476,14 @@ def generated_retina_curvature() -> pd.DataFrame:
         raise ValueError("Axial length must be between 20 and 30 mm")
 
     conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(MU_AL_RADII, COV_AL_RADII, [0], al)
-    rx, ry, rz = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1)
+    rNT, rIS, rPA = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1)
     return pd.DataFrame(
         [
             {
-                "AxialLength": al,
-                "ret_rx": float(rx),
-                "ret_ry": float(ry),
-                "ret_rz": float(rz),
+                "AL": al,
+                "RetNT": float(rNT),
+                "RetIS": float(rIS),
+                "RetPA": float(rPA),
             }
         ]
     )
@@ -494,11 +499,11 @@ def displayed_data() -> pd.DataFrame:
         "CCT",
         "ACD",
         "LT",
-        "AxialLength",
+        "AL",
         "VD",
-        "ret_rx",
-        "ret_ry",
-        "ret_rz",
+        "RetNT",
+        "RetIS",
+        "RetPA",
     ]
     selected_columns = [col for col in preferred_columns if col in df.columns]
     return df[selected_columns]
@@ -531,7 +536,7 @@ with ui.card():
 
     @render.data_frame
     def result_table() -> render.DataGrid:
-        return render.DataGrid(displayed_data().head(20).round(3))
+        return render.DataGrid(displayed_data().head(20).map("{x:.2f}".format))
 
 
 with ui.card():
@@ -539,19 +544,20 @@ with ui.card():
     with ui.layout_columns():
         ui.input_numeric(
             "single_axial_length",
-            "Axial length of the eye [mm]",
-            value=24.0,
+            "Axial length of the eye [mm] (20 - 30 mm)",
+            value=24.00,
             min=20.0,
             max=30.0,
             step=0.1,
+            width="350px",
         )
-        ui.input_action_button("generate_retina", "Generate Retina Radii")
+        ui.input_action_button("generate_retina", "Generate Retina Radii", width="600px")
 
     @render.ui
     def retina_result() -> render.data_frame | HTML:
         @render.data_frame
         def retina_result_table() -> render.DataGrid:
-            return render.DataGrid(generated_retina_curvature().round(2))
+            return render.DataGrid(generated_retina_curvature().map("{x:.2f}".format))
 
         if input.generate_retina() == 0:
             return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
