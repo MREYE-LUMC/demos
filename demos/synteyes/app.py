@@ -1,0 +1,550 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+import numpy as np
+import pandas as pd
+import scipy.stats as stats
+from shiny import reactive
+from shiny.express import input, render, ui  # noqa: A004
+
+if TYPE_CHECKING:
+    from collections.abc import Generator, Sequence
+
+    from htmltools import HTML, Tag
+    from numpy.typing import NDArray
+
+
+RNG = np.random.default_rng()
+DISPLAY_PRECISION = 3
+
+
+def _format_float(value: float, precision: int = DISPLAY_PRECISION) -> str:
+    return f"{value:.{precision}f}"
+
+
+def conditional_sgm(
+    mu: NDArray, cov: NDArray, known_indices: list[int], known_values: NDArray | float
+) -> tuple[NDArray, NDArray]:
+    """Compute the conditional Gaussian distribution.
+
+    Parameters
+    ----------
+    mu : np.ndarray
+        Mean vector of the full Gaussian.
+    cov : np.ndarray
+        Covariance matrix of the full Gaussian.
+    known_indices : list[int]
+        Indices of variables conditioned on.
+    known_values : np.ndarray | float
+        Observed values for the variables in ``known_indices``.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        Conditional mean vector and conditional covariance matrix.
+    """
+    unknown_indices = [i for i in range(len(mu)) if i not in set(known_indices)]
+
+    mu_known = mu[known_indices]
+    mu_unknown = mu[unknown_indices]
+
+    cov_known_known = cov[np.ix_(known_indices, known_indices)]
+    cov_known_unknown = cov[np.ix_(known_indices, unknown_indices)]
+    cov_unknown_known = cov[np.ix_(unknown_indices, known_indices)]
+    cov_unknown_unknown = cov[np.ix_(unknown_indices, unknown_indices)]
+
+    cov_known_known_inv = np.linalg.inv(cov_known_known)
+
+    conditional_mean = mu_unknown + cov_unknown_known @ cov_known_known_inv @ (known_values - mu_known)
+    conditional_cov = cov_unknown_unknown - cov_unknown_known @ cov_known_known_inv @ cov_known_unknown
+
+    return conditional_mean, conditional_cov
+
+
+def zernike_index(order: int) -> NDArray:
+    """Create Zernike polynomial (n, m) index pairs.
+
+    Parameters
+    ----------
+    order : int
+        Maximum radial Zernike order.
+
+    Returns
+    -------
+    np.ndarray
+        Array of shape ``(k, 2)`` containing ``(n, m)`` pairs.
+    """
+    idx = np.array([])
+    for n in range(order + 1):
+        for m in range(-1 * n, n + 1, 2):
+            idx = np.append(idx, [n, m])
+
+    return np.reshape(idx, (int(len(idx) / 2), 2))
+
+
+def convert_to_single_orig_synteyes(
+    eigencornea: NDArray, conv_ec: NDArray, avg_ec: NDArray, lens_za: NDArray
+) -> pd.DataFrame:
+    """Convert one eigencornea sample to SyntEyes format.
+
+    Parameters
+    ----------
+    eigencornea : np.ndarray
+        One eigencornea sample containing biometric latent variables.
+    conv_ec : np.ndarray
+        Conversion matrix from eigencornea coefficients to corneal terms.
+    avg_ec : np.ndarray
+        Mean corneal terms added after conversion.
+    lens_za : np.ndarray
+        Lens Zernike coefficients.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Single-row dataframe with SyntEyes fields.
+    """
+    zerniken = 0.001 * eigencornea[6:18].reshape(1, -1) @ conv_ec.T
+    zerniken += avg_ec
+
+    synteyes_array = np.append(eigencornea[:6], zerniken)
+
+    synteyes = {"CCT": synteyes_array[96]}
+    synteyes["ACD"] = synteyes_array[0]
+    synteyes["LT"] = synteyes_array[1]
+    synteyes["AL"] = synteyes_array[2]
+    synteyes["VD"] = synteyes_array[2] - synteyes_array[0] - synteyes_array[1] - synteyes_array[96] - 0.2
+    synteyes["RT"] = 0.2
+    synteyes["Rla"] = synteyes_array[3]
+    synteyes["Rlp"] = synteyes_array[4]
+    synteyes["Qla"] = -3.1316
+    synteyes["Qlp"] = -1
+    synteyes["Pupil"] = 5
+    synteyes["nc"] = 1.376
+    synteyes["na"] = 1.336
+    synteyes["nv"] = 1.336
+    num5 = synteyes_array[5]
+    synteyes["nl"] = (
+        1000
+        * (synteyes["nv"] * (synteyes["LT"] - synteyes["Rla"]) + synteyes["na"] * (synteyes["LT"] + synteyes["Rlp"]))
+        + num5 * synteyes["Rla"] * synteyes["Rlp"]
+        - np.sqrt(
+            -4
+            * 10**6
+            * synteyes["na"]
+            * synteyes["nv"]
+            * synteyes["LT"]
+            * (synteyes["LT"] - synteyes["Rla"] + synteyes["Rlp"])
+            + (
+                1000 * synteyes["nv"] * (-1 * synteyes["LT"] + synteyes["Rla"])
+                + 1000 * synteyes["na"] * (-1 * synteyes["LT"] - 1 * synteyes["Rlp"])
+                - num5 * synteyes["Rla"] * synteyes["Rlp"]
+            )
+            ** 2
+        )
+    ) / (2000 * (synteyes["LT"] - synteyes["Rla"] + synteyes["Rlp"]))
+
+    ind_lens = zernike_index(6)
+    lens_za_array = np.tile(lens_za, (1, 1))
+    for idx in range(lens_za_array.shape[1]):
+        lens_n = int(ind_lens[idx, 0])
+        lens_m = int(ind_lens[idx, 1])
+        synteyes[f"LensAntZ({lens_n},{lens_m})"] = [lens_za_array[:, idx][0]]
+    ind_cor = zernike_index(8)
+    cor_za = synteyes_array[6:51].reshape(1, -1)
+    for idx in range(cor_za.shape[1]):
+        cor_n = int(ind_cor[idx, 0])
+        cor_m = int(ind_cor[idx, 1])
+        synteyes[f"CorAntZ({cor_n},{cor_m})"] = [cor_za[:, idx][0]]
+    cor_zp = np.reshape(synteyes_array[range(51, 96, 1)], (1, len(range(51, 96, 1))))
+    for idx in range(cor_zp.shape[1]):
+        cor_n = int(ind_cor[idx, 0])
+        cor_m = int(ind_cor[idx, 1])
+        synteyes[f"CorPostZ({cor_n},{cor_m})"] = [cor_zp[:, idx][0]]
+
+    return pd.DataFrame.from_dict(synteyes)
+
+
+def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov_retina: NDArray) -> pd.DataFrame:
+    """Add retinal curvature values conditioned on axial length.
+
+    Parameters
+    ----------
+    synteyes_orig : pandas.DataFrame
+        Generated SyntEyes dataframe without retinal curvature columns.
+    mu_retina : np.ndarray
+        Mean vector for the retina model.
+    cov_retina : np.ndarray
+        Covariance matrix for the retina model.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Input dataframe with ``RetNT``, ``RetIS``, and ``RetPA`` added.
+    """
+    axial_lengths = np.array(synteyes_orig["AL"] - synteyes_orig["RT"])
+
+    n_rows = len(axial_lengths)
+    cond_sgm = np.empty((n_rows, 3))
+    for idx, al in enumerate(axial_lengths):
+        conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(mu_retina, cov_retina, [0], al)
+        cond_sgm[idx, :] = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm)
+
+    synteyes_orig["RetNT"] = cond_sgm[:, 0]
+    synteyes_orig["RetIS"] = cond_sgm[:, 1]
+    synteyes_orig["RetPA"] = cond_sgm[:, 2]
+    return synteyes_orig
+
+
+def create_mgmm_data(
+    mu: Sequence[NDArray] | NDArray,
+    cov: Sequence[NDArray] | NDArray,
+    weights: Sequence[float] | NDArray[np.floating],
+    n: int,
+    rng: np.random.Generator | None = None,
+) -> NDArray:
+    """Sample from a weighted two-component Gaussian mixture model.
+
+    Parameters
+    ----------
+    mu : Sequence[np.ndarray]
+        Mean vectors for each component.
+    cov : Sequence[np.ndarray]
+        Covariance matrices for each component.
+    weights : Sequence[float]
+        Mixture weights for each component.
+    n : int
+        Number of samples to generate.
+    rng : np.random.Generator
+        Random number generator used to decide the mixture components for each sample.
+
+    Returns
+    -------
+    np.ndarray
+        Generated samples in latent eigencornea space.
+
+    Raises
+    ------
+    ValueError
+        If the lengths of ``mu``, ``cov``, and ``weights`` do not match.
+    """
+    if not len(mu) == len(cov) == len(weights):
+        raise ValueError("mu, cov, and weights must have the same length")
+
+    if rng is None:
+        rng = np.random.default_rng()
+
+    counts = rng.multinomial(n, weights)
+    samples = [
+        rng.multivariate_normal(mean, covariance, size=count)
+        for mean, covariance, count in zip(mu, cov, counts, strict=True)
+    ]
+
+    return np.vstack(samples)
+
+
+def generate_synteyes(n: int) -> pd.DataFrame:
+    eigen_data = create_mgmm_data(mu_orig, cov_orig, weights_orig, n, rng=RNG)
+    eigen_data = np.asarray(eigen_data).reshape(n, -1)
+
+    synteyes_orig = pd.DataFrame([])
+    for i in range(len(eigen_data)):
+        synteyes_orig_single = convert_to_single_orig_synteyes(eigen_data[i], conv_ec_orig, avg_ec_orig, lens_za_orig)
+        synteyes_orig = pd.concat([synteyes_orig, synteyes_orig_single], ignore_index=True)
+
+    return create_retina_curvature(synteyes_orig, MU_AL_RADII, COV_AL_RADII)
+
+
+# Original Synteyes parameters
+modeldata_path = Path(__file__).parent / "modeldata.json"
+modeldata = json.loads(modeldata_path.read_text(encoding="utf-8"))
+
+conv_ec_orig = np.array(modeldata["conv_ec_orig"])
+avg_ec_orig = np.array(modeldata["avg_ec_orig"])
+lens_za_orig = np.array(modeldata["lens_za_orig"])
+weights_orig = np.array(modeldata["weights_orig"])
+mu_orig = np.array(modeldata["mu_orig"])
+cov_orig = [np.array(modeldata["cov_orig0"]), np.array(modeldata["cov_orig1"])]
+
+# Retina model parameters
+MU_AL_RADII = np.array([23.85, 11.89, 11.66, 10.55])
+COV_AL_RADII = np.array(
+    [
+        [1.82, 0.56, 0.42, 0.81],
+        [0.56, 0.36, 0.19, 0.18],
+        [0.42, 0.19, 0.24, 0.16],
+        [0.81, 0.18, 0.16, 0.48],
+    ]
+)
+
+COLUMN_HINTS = {
+    "CCT": "Pachymetry (mm)",
+    "ACD": "Anterior chamber depth (mm)",
+    "LT": "Lens thickness (mm)",
+    "AL": "Axial length (mm)",
+    "VD": "Vitreous depth excluding retina (mm)",
+    "RT": "Retinal thickness (fixed value 0.2 mm)",
+    "Rla": "Radius of curvature for the anterior lens surface (mm)",
+    "Rlp": "Radius of curvature for the posterior lens surface (mm)",
+    "Qla": "Asphericity for the anterior lens surface (Navarro eye model)",
+    "Qlp": "Asphericity for the posterior lens surface (Navarro eye model)",
+    "Pupil": "Pupil diameter (fixed value 5 mm)",
+    "Rret": "Radius of curvature of the retinal surface (Navarro eye model)",
+    "nc": "Refractive index of the cornea",
+    "na": "Refractive index of the aqueous",
+    "nv": "Refractive index of the vitreous",
+    "nl": "Refractive index of the lens",
+    "RetNT": "Retinal ellipsoid radius in the nasal-temporal direction (mm)",
+    "RetIS": "Retinal ellipsoid radius in the inferior-superior direction (mm)",
+    "RetPA": "Retinal ellipsoid radius in the posterior-anterior direction (mm)",
+}
+
+SECTIONS = ("biometry", "retina", "other", "lens", "corneaZer", "lensZer")
+
+BIOMETRY_COLUMNS = {"CCT", "ACD", "LT", "AL", "VD", "RT"}
+LENS_COLUMNS = {"Rla", "Rlp", "Qla", "Qlp"}
+RETINA_COLUMNS = {"Rret", "RetNT", "RetIS", "RetPA"}
+
+
+def section_for_column(column: str) -> str:
+    if column in BIOMETRY_COLUMNS:
+        return "biometry"
+    if column.startswith(("CorAntZ", "CorPostZ")):
+        return "corneaZer"
+    if column.startswith("LensAntZ"):
+        return "lensZer"
+    if column in LENS_COLUMNS:
+        return "lens"
+    if column in RETINA_COLUMNS:
+        return "retina"
+    return "other"
+
+
+def nest_synteyes_record(record: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    nested = {section: {} for section in SECTIONS}
+    for column, value in record.items():
+        nested[section_for_column(column)][column] = value
+    return nested
+
+
+def flatten_synteyes_record(record: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    flattened: dict[str, Any] = {}
+    for section in SECTIONS:
+        flattened.update(record.get(section, {}))
+    return flattened
+
+
+PREFIX_HINTS = {
+    "CorAntZ": "Zernikes of anterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+    "CorPostZ": "Zernikes of posterior corneal surface (mm, 8th order, 6.5 mm diameter)",
+    "LensAntZ": "Zernikes of anterior lens surface (mm, 5th order, 5.5 mm diameter)",
+}
+
+ui.tags.style(".container { padding-top: 1.5rem; }")
+ui.tags.script(
+    f"""
+(() => {{
+    const columnHints = {json.dumps(COLUMN_HINTS)};
+    const prefixHints = {json.dumps(PREFIX_HINTS)};
+
+    const hintForColumn = (columnName) => {{
+        if (columnHints[columnName]) return columnHints[columnName];
+        for (const [prefix, hint] of Object.entries(prefixHints)) {{
+            if (columnName.startsWith(prefix)) return hint;
+        }}
+        return "";
+    }};
+
+    const applyColumnHints = () => {{
+        document.querySelectorAll("shiny-data-frame thead th").forEach((th) => {{
+            const columnName = (th.textContent || "").trim();
+            if (!columnName) return;
+            const hint = hintForColumn(columnName);
+            if (hint) th.setAttribute("title", hint);
+        }});
+    }};
+
+    document.addEventListener("DOMContentLoaded", applyColumnHints);
+    new MutationObserver(applyColumnHints).observe(document.body, {{
+        childList: true,
+        subtree: true,
+    }});
+}})();
+"""
+)
+ui.tags.script(
+    """
+(() => {
+    $( document ).ready(() => {
+        $(':input').on('change input', (event) => {
+            if (event.target.type !== 'number') return;
+
+            const min = Number(event.target.min);
+            const max = Number(event.target.max);
+            const value = Number(event.target.value)
+
+            if (min && value < min) {
+                event.target.value = min;
+            } else if (max && value > max) {
+                event.target.value = max;
+            }
+        })
+    })
+})();
+"""
+)
+
+with ui.card():
+    ui.card_header("Create 3D SyntEyes")
+    with ui.layout_columns(class_="align-items-end"):
+        ui.input_numeric("n_eyes", "Number of 3D SyntEyes (max. 1000)", value=10, min=1, max=1000, step=1)
+        ui.input_action_button("generate", "Generate SyntEyes")
+
+        def conditional_download_button(button: render.download) -> render.ui:
+            fallback = ui.input_action_button(button.output_id + "_fallback", label=button.label, disabled=True)
+
+            def wrapper() -> Tag | render.download:
+                if input.generate() == 0 or input.n_eyes() == 0:
+                    return fallback
+
+                return button
+
+            wrapper.__name__ = button.output_id + "_wrapper"
+
+            return render.ui(wrapper)
+
+        @conditional_download_button
+        @render.download(filename="synteyes.csv", label="Download CSV")
+        def download_csv() -> Generator[str, Any, None]:
+            yield generated_data_flat().to_csv(index=False)
+
+        @conditional_download_button
+        @render.download(filename="synteyes.json", label="Download JSON")
+        def download_json() -> Generator[str, Any, None]:
+            def _json_default(obj: Any) -> Any:  # noqa: ANN401
+                if isinstance(obj, np.generic):
+                    return obj.item()
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+            records = generated_data_nested()
+            yield json.dumps(records, separators=(",", ":"), default=_json_default)
+
+
+@reactive.calc
+@reactive.event(input.generate)
+def generated_data_nested() -> list[dict[str, dict[str, Any]]]:
+    n = int(input.n_eyes())
+    if n < 1:
+        raise ValueError("Number of SyntEyes must be at least 1")
+    if n > 1000:
+        raise ValueError("Number of SyntEyes must be at most 1000")
+
+    flat_records = generate_synteyes(n).to_dict(orient="records")
+    return [nest_synteyes_record(record) for record in flat_records]
+
+
+@reactive.calc
+def generated_data_flat() -> pd.DataFrame:
+    flat_records = [flatten_synteyes_record(record) for record in generated_data_nested()]
+    return pd.DataFrame(flat_records)
+
+
+@reactive.calc
+@reactive.event(input.generate_retina)
+def generated_retina_curvature() -> pd.DataFrame:
+    al = float(input.single_axial_length())
+    if al < 20 or al > 30:
+        raise ValueError("Axial length must be between 20 and 30 mm")
+
+    conditional_mean_sgm, conditional_cov_sgm = conditional_sgm(MU_AL_RADII, COV_AL_RADII, [0], al)
+    rNT, rIS, rPA = stats.multivariate_normal.rvs(mean=conditional_mean_sgm, cov=conditional_cov_sgm, size=1)
+    return pd.DataFrame(
+        [
+            {
+                "AL": al,
+                "RetNT": float(rNT),
+                "RetIS": float(rIS),
+                "RetPA": float(rPA),
+            }
+        ]
+    )
+
+
+@reactive.calc
+def displayed_data() -> pd.DataFrame:
+    df = generated_data_flat()
+    if not input.compact_view():
+        return df
+
+    preferred_columns = [
+        "CCT",
+        "ACD",
+        "LT",
+        "AL",
+        "VD",
+        "RetNT",
+        "RetIS",
+        "RetPA",
+    ]
+    selected_columns = [col for col in preferred_columns if col in df.columns]
+    return df[selected_columns]
+
+
+with ui.card():
+    with ui.card_header():
+        "Result"
+        with ui.toolbar(align="right"):
+            ui.toolbar_input_select(
+                id="compact_view",
+                label="Compact view",
+                choices={False: "Compact", True: "Expanded"},
+                selected="Compact",
+            )
+
+    @render.ui
+    def result_summary() -> HTML:
+        if input.generate() == 0:
+            return ui.markdown("Enter the amount of eyes and click **Generate SyntEyes**.")
+
+        df = generated_data_flat()
+        shown_df = displayed_data()
+        mode_label = "compact" if input.compact_view() else "expanded"
+        return ui.markdown(
+            f"Generated **{len(df)}** SyntEyes with **{df.shape[1]}** total columns. "
+            f"Showing **{shown_df.shape[1]}** columns in **{mode_label}** mode "
+            "(first 20 rows)."
+        )
+
+    @render.data_frame
+    def result_table() -> render.DataGrid:
+        return render.DataGrid(displayed_data().head(20).map(_format_float))
+
+
+with ui.card():
+    ui.card_header("Create retina radii from axial length")
+    with ui.layout_columns():
+        ui.input_numeric(
+            "single_axial_length",
+            "Axial length of the eye [mm] (20 - 30 mm)",
+            value=24.00,
+            min=20.0,
+            max=30.0,
+            step=0.1,
+            width="350px",
+        )
+        ui.input_action_button("generate_retina", "Generate Retina Radii", width="600px")
+
+    @render.ui
+    def retina_result() -> render.data_frame | HTML:
+        @render.data_frame
+        def retina_result_table() -> render.DataGrid:
+            return render.DataGrid(generated_retina_curvature().map(_format_float))
+
+        if input.generate_retina() == 0:
+            return ui.markdown("Enter an axial length and click **Generate Retina Radii**.")
+
+        return retina_result_table
