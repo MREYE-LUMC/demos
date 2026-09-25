@@ -199,9 +199,9 @@ def create_retina_curvature(synteyes_orig: pd.DataFrame, mu_retina: NDArray, cov
 
 
 def create_mgmm_data(
-    mu: Sequence[NDArray],
-    cov: Sequence[NDArray],
-    weights: Sequence[float],
+    mu: Sequence[NDArray] | NDArray,
+    cov: Sequence[NDArray] | NDArray,
+    weights: Sequence[float] | NDArray[np.floating],
     n: int,
     rng: np.random.Generator | None = None,
 ) -> NDArray:
@@ -246,7 +246,7 @@ def create_mgmm_data(
 
 
 def generate_synteyes(n: int) -> pd.DataFrame:
-    eigen_data = create_mgmm_data(mu_orig, (cov_orig0, cov_orig1), weights_orig, n, rng=RNG)
+    eigen_data = create_mgmm_data(mu_orig, cov_orig, weights_orig, n, rng=RNG)
     eigen_data = np.asarray(eigen_data).reshape(n, -1)
 
     synteyes_orig = pd.DataFrame([])
@@ -266,9 +266,7 @@ avg_ec_orig = np.array(modeldata["avg_ec_orig"])
 lens_za_orig = np.array(modeldata["lens_za_orig"])
 weights_orig = np.array(modeldata["weights_orig"])
 mu_orig = np.array(modeldata["mu_orig"])
-cov_orig0 = np.array(modeldata["cov_orig0"])
-cov_orig1 = np.array(modeldata["cov_orig1"])
-cov_orig = [cov_orig0,cov_orig1]
+cov_orig = [np.array(modeldata["cov_orig0"]), np.array(modeldata["cov_orig1"])]
 
 # Retina model parameters
 MU_AL_RADII = np.array([23.85, 11.89, 11.66, 10.55])
