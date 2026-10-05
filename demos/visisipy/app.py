@@ -62,6 +62,12 @@ model_parameters = {
             max=0.75,
             step=0.1,
         ),
+        ui.input_select(
+            "sampling",
+            "Sampling",
+            choices={str(s): f"{s} × {s}" for s in [32, 64, 128, 256, 512, 1024, 2048]},  # noqa: RUF001
+            selected="128",
+        ),
     ],
     "Biometry": [
         ui.input_numeric(
@@ -459,6 +465,11 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         return model
 
     @reactive.calc
+    @reactive.event(input.sampling)
+    def sampling() -> int:
+        return int(input.sampling())
+
+    @reactive.calc
     def raytrace() -> list[tuple[np.ndarray, np.ndarray]]:
         # Depend on eye model, wavelength and fields
         eye_model()
@@ -486,7 +497,9 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         eye_model()
         input.wavelength()
 
-        refractions = [visisipy.analysis.refraction(field_coordinate=(0, y)) for y in range(0, 90, 5)]
+        refractions = [
+            visisipy.analysis.refraction(field_coordinate=(0, y), sampling=sampling()) for y in range(0, 90, 5)
+        ]
 
         # Reset field settings
         visisipy.update_settings()
@@ -528,9 +541,10 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         data = []
 
         for field in sorted(fields()):
-            refraction = visisipy.analysis.refraction(field_coordinate=(0, field))
+            refraction = visisipy.analysis.refraction(field_coordinate=(0, field), sampling=sampling())
             strehl_ratio = visisipy.analysis.strehl_ratio(
                 field_coordinate=(0, field),
+                sampling=sampling(),
                 psf_type="fft",
             )
 
@@ -623,6 +637,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
         psf = visisipy.analysis.fft_psf(
             field_coordinate=(0, 0),
             wavelength=input.wavelength(),
+            sampling=sampling(),
         )
 
         im = ax.imshow(
@@ -657,7 +672,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
 
         mtf_result = visisipy.analysis.fft_mtf(
             wavelength=wavelength,
-            sampling=128,
+            sampling=sampling(),
         )
 
         # Get the maximum cutoff frequency across all fields for setting the x-axis
