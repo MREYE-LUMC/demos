@@ -231,7 +231,15 @@ app_ui = ui.page_fluid(
             ui.column(
                 4,
                 ui.card(
-                    ui.card_header("Central FFT PSF"),
+                    ui.card_header(
+                        "Central FFT PSF",
+                        ui.toolbar(
+                            ui.toolbar_input_select(
+                                id="psf_scale", label="Scale", choices=["Linear", "Logarithmic"], selected="Logarithmic"
+                            ),
+                            align="right",
+                        ),
+                    ),
                     ui.output_plot("plot_fft_psf", width="90%"),
                 ),
             ),
@@ -621,7 +629,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: A
             psf,
             extent=(psf.columns[0], psf.columns[-1], psf.index[-1], psf.index[0]),
             origin="lower",
-            norm=LogNorm(vmin=1e-5),
+            norm=LogNorm(vmin=1e-5) if input.psf_scale() == "Logarithmic" else None,
         )
         ax.set_xlabel("X [μm]")
         ax.set_ylabel("Y [μm]")
