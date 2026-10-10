@@ -26,6 +26,10 @@ const demos = defineCollection({
       .url()
       .optional()
       .describe("URL to the paper associated with the demo."),
+    isPreprint: z
+      .boolean()
+      .default(false)
+      .describe("Whether the paper is a preprint"),
     showMDRModal: z
       .boolean()
       .default(true)

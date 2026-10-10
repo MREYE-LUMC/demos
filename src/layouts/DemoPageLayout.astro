@@ -9,10 +9,11 @@ interface Props {
   demoSlug: string;
   repoUrl?: string;
   paperUrl?: string;
+  isPreprint?: boolean;
   showMDRModal?: boolean;
 }
 
-const { title, demoSlug, repoUrl, paperUrl, showMDRModal } = Astro.props;
+const { title, demoSlug, repoUrl, paperUrl, isPreprint, showMDRModal } = Astro.props;
 
 const editUrl = `/shinylive/${demoSlug}/edit/`;
 const appUrl = `/shinylive/${demoSlug}/`;
@@ -46,7 +47,7 @@ const appUrl = `/shinylive/${demoSlug}/`;
         {
           paperUrl && (
             <ActionButton
-              text="Read the paper"
+              text=`Read the ${isPreprint ? "preprint" : "paper"}`
               href={paperUrl}
               icon="heroicons:newspaper"
             />
