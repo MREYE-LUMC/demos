@@ -391,15 +391,15 @@ wheels = [
 
 [[package]]
 name = "htmltools"
-version = "0.6.0"
+version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/1d/c568d17e9fb5ad5aa0ca3531c58d36fe69deb8eee4e53ff6425c1f99f210/htmltools-0.6.0.tar.gz", hash = "sha256:e8a3fb023d748935035db7ff17f620612ffc814a6a80b6ae388f7b7ab182adf7", size = 97152, upload-time = "2024-10-29T20:21:43.378Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a4/54/e1a0ea0b8db8460fdedf584b4136a5b9e7f9d7072ee008f825f29b103660/htmltools-0.7.0.tar.gz", hash = "sha256:b95f922b7038f1b935ce24691ae74cb1ab9526d9c9cf1c2e2f329c38ef227a10", size = 105807, upload-time = "2026-05-21T15:02:33.357Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0a/ba/aa99706246f1938ca905eb6eeb7db832ac2e157aa4b805acb5cd4cd1791a/htmltools-0.6.0-py3-none-any.whl", hash = "sha256:072a274ff5e2851e0acce13fc5bb2bbdbbad8268dc8b123f881c05012ce7dce0", size = 84954, upload-time = "2024-10-29T20:21:42.067Z" },
+    { url = "https://files.pythonhosted.org/packages/2f/b2/bd9bfa6d77641bd3be57c7cd6ce10294d26db20cb9aedf19ac5d78845886/htmltools-0.7.0-py3-none-any.whl", hash = "sha256:92e5d06aeadb56e0ff63b236971bc58bb9cf6058c7235e3af57868e7bf113e1b", size = 89598, upload-time = "2026-05-21T15:02:32.171Z" },
 ]
 
 [[package]]
@@ -1518,7 +1518,7 @@ wheels = [
 
 [[package]]
 name = "shiny"
-version = "1.6.1"
+version = "1.6.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
@@ -1543,9 +1543,9 @@ dependencies = [
     { name = "watchfiles", marker = "sys_platform != 'emscripten'" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/09/cbb28b11ac6556aa654c2cbc403aa75c89844e699d4f45897743c91ea139/shiny-1.6.1.tar.gz", hash = "sha256:f58450c36faffc6ca27773331a0007d9455d7c396360257a4c4df924162f5f69", size = 5112401, upload-time = "2026-05-01T16:01:28.358Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/80/a9/28499cf1afa127ede99d1784ad4bfcbb892837e5c9a2b8b5bf294bec9d78/shiny-1.6.4.tar.gz", hash = "sha256:52b83800f165b9fb5740606913b3a6af77ddef4b3ff588e26be2b79f17fa9921", size = 5146452, upload-time = "2026-07-28T19:09:05.957Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d2/8c/330a7c763626c71214c1f6dfd0a28af0deef32ae5dda1faf19fbe0a16a24/shiny-1.6.1-py3-none-any.whl", hash = "sha256:47822d6fdbe54d61cd5a369549655bf69e2a8160a488244d6e76aa81d133bf79", size = 3917952, upload-time = "2026-05-01T16:01:26.435Z" },
+    { url = "https://files.pythonhosted.org/packages/31/3e/294a605d97afd3975eb1704747447fd1ebfe044b128518458fccb9688f94/shiny-1.6.4-py3-none-any.whl", hash = "sha256:88e701bd265c3edcb29cf85368c095f33fef1409316152113abfd2cdf016c90f", size = 3932607, upload-time = "2026-07-28T19:09:03.633Z" },
 ]
 
 [[package]]
