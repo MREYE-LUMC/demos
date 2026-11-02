@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from itertools import cycle
 from typing import TYPE_CHECKING
+from warnings import filterwarnings
 
 import faicons
 import matplotlib.pyplot as plt
@@ -18,6 +19,8 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
     from pandas.io.formats.style import Styler
     from visisipy.refraction import FourierPowerVectorRefraction
+
+filterwarnings("ignore", category=UserWarning, module="visisipy", message="Field coordinate .* not found.*")
 
 plt.rcParams["axes.grid"] = True
 plt.rcParams["grid.linestyle"] = ":"
