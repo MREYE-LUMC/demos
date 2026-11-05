@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from itertools import cycle
 from typing import TYPE_CHECKING
 from warnings import filterwarnings
@@ -21,6 +22,14 @@ if TYPE_CHECKING:
     from visisipy.refraction import FourierPowerVectorRefraction
 
 filterwarnings("ignore", category=UserWarning, module="visisipy", message="Field coordinate .* not found.*")
+
+if sys.platform == "emscripten":
+    # Numba is not available in Pyodide and is replaced by a no-op mock (see mock_libraries/numba).
+    # Optiland traces conic surfaces with a Numba-compiled per-ray loop, which becomes a very slow
+    # pure-Python loop with the mock. Force Optiland's vectorized NumPy implementation instead.
+    from optiland.backend.numpy_backend import conic as optiland_conic
+
+    optiland_conic._can_fuse_numpy = lambda *_: False
 
 plt.rcParams["axes.grid"] = True
 plt.rcParams["grid.linestyle"] = ":"
