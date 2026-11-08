@@ -1,4 +1,15 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+async function openDemo(page: Page, location: string) {
+  // Navigate to the demo page
+  await page.goto(location);
+
+  // Accept the Terms of Use dialog if it appears
+  const agreeButton = page.getByRole("button", { name: "I Agree" });
+  if ((await agreeButton.count()) > 0 && (await agreeButton.isVisible())) {
+    await agreeButton.click();
+  }
+}
 
 function setupDemoTest(
   name: string,
@@ -10,14 +21,7 @@ function setupDemoTest(
 ) {
   test.describe(name, () => {
     test.beforeEach(async ({ page }) => {
-      // Navigate to the demo page
-      await page.goto(location);
-
-      // Accept the Terms of Use dialog if it appears
-      const agreeButton = page.getByRole("button", { name: "I Agree" });
-      if ((await agreeButton.count()) > 0 && (await agreeButton.isVisible())) {
-        await agreeButton.click();
-      }
+      await openDemo(page, location);
     });
 
     test("demo page loads without errors", async ({ page }) => {
@@ -106,3 +110,46 @@ setupDemoTest(
   "Create 3D SyntEyes",
   ["Enter the amount of eyes and click Generate SyntEyes."],
 );
+
+test.describe("Visisipy Demo performance", () => {
+  // Numba is mocked in Pyodide, so app.py makes Optiland use its vectorized
+  // NumPy code instead of Numba-compiled loops, which would run as plain
+  // Python. This workaround patches a private Optiland function. If it stops
+  // working, recalculating the demo becomes several times slower and this
+  // test fails.
+  const maxRecalculationTime = 30000;
+  const refractionPattern = /^-?\d+\.\d{2} D$/;
+
+  test("recalculates the eye model within the time limit", async ({ page }) => {
+    await openDemo(page, "/visisipy/");
+
+    const frame = page.frameLocator("iframe.app-frame").frameLocator("iframe");
+    const centralRefraction = frame.locator("#central_refraction");
+
+    // Wait for the initial calculations to finish
+    await expect(centralRefraction).toHaveText(refractionPattern, {
+      timeout: 180000,
+    });
+    const initialRefraction = (await centralRefraction.innerText()).trim();
+
+    await frame.getByRole("button", { name: "Biometry" }).click();
+    const axialLength = frame.getByLabel("Axial length [mm]");
+    const newAxialLength = parseFloat(await axialLength.inputValue()) + 1;
+
+    // Changing the axial length recalculates all outputs, including the
+    // refraction for 18 field angles that the central refraction is taken from
+    const start = Date.now();
+    await axialLength.fill(newAxialLength.toString());
+
+    await expect(async () => {
+      const refraction = (await centralRefraction.innerText()).trim();
+      expect(refraction).toMatch(refractionPattern);
+      expect(refraction).not.toBe(initialRefraction);
+    }).toPass({ timeout: maxRecalculationTime });
+
+    test.info().annotations.push({
+      type: "Recalculation time",
+      description: `${((Date.now() - start) / 1000).toFixed(1)} s`,
+    });
+  });
+});
