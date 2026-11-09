@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from PAROS.fundscale import Camera, Eye, EyeGeometry, PhakicIOL, calculate_magnification
+import faicons
+from PAROS.fundscale import Camera, Eye, EyeGeometry, PhakicIOL
 from shiny import reactive
 from shiny.express import input, render, ui  # noqa: A004
 
@@ -96,18 +97,41 @@ with ui.card():
             ui.input_action_button("fit_r_lensb", "Fit posterior lens curvature")
             "Fit the lens back curvature to the specified spherical equivalent"
 
-with ui.card():
-    ui.card_header("Camera parameters")
+with ui.layout_columns():
+    with ui.value_box(
+        showcase=faicons.icon_svg("magnifying-glass", width="50px"), showcase_layout="bottom", theme="primary"
+    ):
+        "Magnification"
 
-    ui.markdown(
-        "See our publication for an explanation of the camera-specific parameters. "
-        "Parameters used in this demo:  \n"
-        "<table>"
-        "<tr><td><strong>Condenser lens power</strong></td><td>37.6 D</td></tr>"
-        "<tr><td><strong>First order correction term</strong></td><td>0.035</td></tr>"
-        "<tr><td><strong>Pixel density</strong></td><td>100 px/mm</td></tr>"
-        "</table>",
-    )
+        @render.ui()
+        def calculate() -> str:
+            eye = eye_model()
+
+            camera_f_cond = 0.02657
+            camera_a1 = 0.03481
+
+            camera = Camera(F_cond=camera_f_cond, a1=camera_a1, pixel_density=100)
+
+            eye.adjust_lens_back(
+                eye.geometry["SE"],
+                update_model=True,
+            )
+            magnification = camera.calculate_magnification(eye)
+
+            return f"{abs(magnification):.0f} px/mm"
+
+    with ui.card():
+        ui.card_header("Camera parameters")
+
+        ui.markdown(
+            "See our publication for an explanation of the camera-specific parameters. "
+            "Parameters used in this demo:  \n"
+            "<table>"
+            "<tr><td><strong>Condenser lens power</strong></td><td>37.6 D</td></tr>"
+            "<tr><td><strong>First order correction term</strong></td><td>0.035</td></tr>"
+            "<tr><td><strong>Pixel density</strong></td><td>100 px/mm</td></tr>"
+            "</table>",
+        )
 
 
 def phakic_eye() -> Eye:
@@ -210,24 +234,3 @@ def update_r_lensb() -> None:
 
     lens_curvature, _ = eye.adjust_lens_back(input.se(), update_model=False)
     ui.update_numeric("r_lensb", value=1000 * float(lens_curvature))
-
-
-with ui.card():
-    ui.card_header("Result")
-
-    @render.ui()
-    def calculate() -> ui.HTML:
-        eye = eye_model()
-
-        camera_f_cond = 0.02657
-        camera_a1 = 0.03481
-
-        camera = Camera(F_cond=camera_f_cond, a1=camera_a1, pixel_density=100)
-
-        eye.adjust_lens_back(
-            eye.geometry["SE"],
-            update_model=True,
-        )
-        magnification, *_ = calculate_magnification(eye, camera)
-
-        return ui.markdown(f"**Magnification:** {abs(magnification):.0f} px/mm")
